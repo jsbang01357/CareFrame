@@ -1,17 +1,92 @@
+'use client';
 import type { InterviewState } from '@/lib/contracts';
 import { buildReport } from '@/lib/report/build-report';
-const stopLabels: Record<string, string> = { configured_risk: '설정된 위험 신호로 중단', unsupported: '지원 범위 밖', user_end: '사용자가 종료함', turn_limit: '12턴 상한', questions_exhausted: '준비된 질문 종료', scope_uncertain: '지원 범위 불명확', session_limit: '세션 시간 상한', input_error: '입력 처리 오류' };
-export function ReportView({ state, fixture, onEvidence }: { state: InterviewState; fixture: boolean; onEvidence: (id: string) => void }) {
-  const r = buildReport(state);
-  return <article className="report">
-    <div className="report-heading"><div><span className="eyebrow">CARE FRAME / PRE-VISIT NOTE</span><h2>{r.title}</h2></div><span className="note-badge">가상 증례</span></div>
-    <p className="report-disclosure">사용자 진술을 정리한 AI 사전 문진 자료입니다. 자동 전사 오류가 있을 수 있으며 의료진 확인이 필요합니다. 임상 프로토콜 검토 미완료.</p>
+import type { ClinicalFact } from '@/lib/report/clinical-note';
+
+const statusText: Record<ClinicalFact['status'], string> = {
+  reported: '환자 보고', denied: '환자 부정', unknown: '잘 모름', unclear: '불명확',
+  declined: '응답 거부', not_assessed: '미확인',
+};
+const stopLabels: Record<string, string> = {
+  configured_risk: '설정된 위험 신호로 중단', unsupported: '지원 범위 밖', user_end: '사용자가 종료함',
+  turn_limit: '12턴 상한', questions_exhausted: '준비된 질문 종료', scope_uncertain: '지원 범위 불명확',
+  session_limit: '세션 시간 상한', input_error: '입력 처리 오류',
+};
+
+function FactLine({ fact, onEvidence, compact = false }: { fact: ClinicalFact; onEvidence: (id: string) => void; compact?: boolean }) {
+  const value = fact.status === 'reported' ? fact.value || '환자 보고' : statusText[fact.status];
+  return <div className={`clinical-fact${compact ? ' compact' : ''}`}>
+    <span className="clinical-fact-label">{fact.label}</span>
+    <span className={`clinical-fact-value status-${fact.status}`}>{value}</span>
+    {fact.sources.length > 0 && <span className="clinical-sources">{fact.sources.map((source, index) =>
+      <button key={`${source.sourceTurnId}-${index}`} className="quote-button" onClick={() => onEvidence(source.sourceTurnId)}>
+        원문: “{source.sourceQuote}” ↗
+      </button>)}</span>}
+  </div>;
+}
+
+export function ReportView({ state, fixture, onEvidence, copyStatus }: { state: InterviewState; fixture: boolean; onEvidence: (id: string) => void; copyStatus: 'copied' | 'failed' | null }) {
+  const r = buildReport(state, fixture);
+  return <article className="report clinical-note">
+    <header className="report-heading">
+      <div><span className="eyebrow">PRE-VISIT CLINICAL NOTE · S — SUBJECTIVE</span><h2>{r.title}</h2></div>
+      <span className="note-badge">{fixture ? '가상 증례' : 'Patient-reported'}</span>
+    </header>
+    <p className="report-disclosure">AI 사전문진 기록 · 의료진 확인 전. 환자가 보고한 내용을 구조화했으며 확정 의무기록이 아닙니다.</p>
     {fixture && <p className="fixture-banner">개발용 고정 사실 후보 · 실제 음성/추출 API 결과가 아닙니다.</p>}
-    <div className="report-meta"><span>프로토콜 {state.protocol_version}</span><span>기록 버전 {r.revision}</span><span>{r.confirmed ? '사용자가 현재 내용을 확인함' : '사용자 확인 전'}</span></div>
-    <section className={state.safety.latched ? 'next-box urgent' : 'next-box'}><h3>다음 행동</h3><p>{r.nextAction}</p>{r.stopReason && <small>종료 이유: {stopLabels[r.stopReason] || r.stopReason}</small>}</section>
-    <table><thead><tr><th>항목</th><th>진술·확인 상태</th><th>원문 근거</th></tr></thead><tbody>{r.rows.map(f => <tr key={f.field_id}><th scope="row">{f.label}</th><td>{f.value || f.statusLabel}<small>{f.status === 'reported' ? f.verification === 'unconfirmed_transcript' ? '자동 전사 · 확인 필요' : '사용자 진술' : ''}</small></td><td>{f.evidence.length ? f.evidence.map((e, i) => <button key={i} className="quote-button" onClick={() => onEvidence(e.turn_id)}>“{e.quote}” <small>{e.turn_id.slice(0,8)}</small></button>) : <span className="muted">관련 진술 없음</span>}</td></tr>)}</tbody></table>
-    {r.contextual.length > 0 && <section><h3>타인·과거·불명확 문맥 — 현재 본인 증상과 분리</h3>{r.contextual.map((f, i) => <p key={i}>{f.label}: {f.value || f.statusLabel} ({f.subject === 'other' ? '타인' : f.subject === 'unclear' ? '주체 불명확' : '본인'}, {f.temporality === 'historical' ? '과거' : f.temporality === 'unclear' ? '시점 불명확' : '현재'})<br/>{f.evidence.map(e => `“${e.quote}”`).join(' / ')}</p>)}</section>}
-    {r.corrections.length > 0 && <section><h3>정정 이력</h3>{r.corrections.map(c => <p key={c.after.id}><del>{c.before?.text}</del><br/><strong>정정: {c.after.text}</strong></p>)}</section>}
-    <footer className="report-footer">CareFrame · 영희 / 가상 증례 시연용 / 진단·처방·신체진찰 자료가 아닙니다.</footer>
+    <div className="clinical-meta">
+      <span>환자: 연령 {r.demographics.age ?? '미확인'} · 성별 {r.demographics.sex ?? '미확인'}</span>
+      <span>문진 방식: AI {r.interviewMode}</span>
+      <span>기록 버전 {r.revision} · {r.confirmed ? '사용자 확인' : '사용자 확인 전'}</span>
+    </div>
+
+    <section className="clinical-section cc-section">
+      <h3>CHIEF COMPLAINT (CC) <small>주호소</small></h3>
+      <FactLine fact={r.chiefComplaint} onEvidence={onEvidence}/>
+    </section>
+    <section className="clinical-section">
+      <h3>HISTORY OF PRESENT ILLNESS (HPI) <small>현병력</small></h3>
+      <p className="hpi-summary">{r.hpiSummary}</p>
+      <div className="clinical-grid">
+        <FactLine fact={r.hpi.onset} onEvidence={onEvidence}/>
+        <FactLine fact={r.hpi.location} onEvidence={onEvidence}/>
+        <FactLine fact={r.hpi.character} onEvidence={onEvidence}/>
+        <FactLine fact={r.hpi.severity} onEvidence={onEvidence}/>
+        <FactLine fact={r.hpi.duration} onEvidence={onEvidence}/>
+        <FactLine fact={r.hpi.aggravating} onEvidence={onEvidence}/>
+        <FactLine fact={r.hpi.relieving} onEvidence={onEvidence}/>
+        <FactLine fact={r.hpi.dailyFunction} onEvidence={onEvidence}/>
+      </div>
+    </section>
+    <section className="clinical-section">
+      <h3>PERTINENT ROS / ASSOCIATED SYMPTOMS <small>관련 증상</small></h3>
+      <div className="clinical-grid clinical-grid-wide">{r.associatedSymptoms.map(f => <FactLine key={f.field} fact={f} onEvidence={onEvidence}/>)}</div>
+    </section>
+    <section className="clinical-section">
+      <h3>RELEVANT HISTORY <small>관련 병력</small></h3>
+      <div className="clinical-grid clinical-grid-wide">
+        {Object.values(r.history).map(f => <FactLine key={f.field} fact={f} onEvidence={onEvidence}/>) }
+      </div>
+      {r.patientConcerns.some(f => f.status !== 'not_assessed') && <div className="concern-block"><strong>환자 우려·생각</strong>{r.patientConcerns.filter(f => f.status !== 'not_assessed').map(f => <FactLine key={f.field} fact={f} onEvidence={onEvidence} compact/>)}</div>}
+    </section>
+    <section className="clinical-section red-flag-section">
+      <h3>RED FLAGS & MISSING INFORMATION <small>위험 신호 및 미확인 정보</small></h3>
+      <p className={r.redFlagsComplete ? 'red-flag-summary' : 'red-flag-summary incomplete'}>
+        {r.redFlagsComplete ? '아래 열거한 주요 위험 항목은 이번 문진에서 각각 확인했습니다.' : '주요 위험 항목이 모두 확인되지 않았습니다. 미확인·불명확·잘 모름 상태를 음성으로 간주하지 마세요.'}
+      </p>
+      <div className="clinical-grid clinical-grid-wide">{r.redFlags.map(f => <FactLine key={f.field} fact={f} onEvidence={onEvidence} compact/>)}</div>
+      {r.missingInformation.length > 0 && <p className="missing-list"><strong>추가 확인 필요:</strong> {r.missingInformation.join(' · ')}</p>}
+    </section>
+    <section className="clinical-next-step"><strong>환자 안내</strong><p>{r.patientNextAction}</p>{state.stop_reason && <small>문진 종료: {stopLabels[state.stop_reason] || state.stop_reason}</small>}</section>
+    <section className="soap-scope" aria-label="기록 범위">
+      <div><strong>O — Objective</strong><span>{r.objective}</span></div>
+      <div><strong>A — Assessment</strong><span>{r.assessment}</span></div>
+      <div><strong>P — Plan</strong><span>{r.plan}</span></div>
+    </section>
+    {r.contextual.length > 0 && <section className="clinical-section contextual-section"><h3>타인·과거 병력 문맥 <small>현재 환자 증상과 분리</small></h3>{r.contextual.map((f, index) => <p key={`${f.field_id}-${index}`}>{f.field_id}: {f.value || statusText[f.status]} ({f.subject === 'other' ? '타인' : '주체 불명확'}, {f.temporality === 'historical' ? '과거' : '시점 불명확'}){f.evidence.map((e, i) => <button key={i} className="quote-button" onClick={() => onEvidence(e.turn_id)}>원문: “{e.quote}” ↗</button>)}</p>)}</section>}
+    {r.corrections.length > 0 && <details className="correction-history"><summary>정정 원문 이력 보기 ({r.corrections.length})</summary>{r.corrections.map(c => <p key={c.after.id}><del>{c.before?.text}</del><br/><strong>정정: {c.after.text}</strong></p>)}</details>}
+    <footer className="report-footer">환자 자가응답을 AI가 구조화한 자료입니다. 원문을 확인하고 의료진이 병력을 검증하세요. 진단·치료 계획·신체진찰 결과는 포함하지 않습니다.</footer>
+    {copyStatus && <p role="status" className="copy-status">{copyStatus === 'copied' ? '현재 기록을 EMR 복사용 텍스트로 복사했어요.' : '자동 복사 권한이 없어 아래 텍스트를 선택해 복사해 주세요.'}</p>}
+    {copyStatus === 'failed' && <textarea className="emr-fallback" aria-label="EMR 복사 텍스트" readOnly value={r.emrText}/>}
   </article>;
 }

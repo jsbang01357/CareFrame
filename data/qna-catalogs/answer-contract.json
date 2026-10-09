@@ -1,0 +1,34 @@
+{
+  "schema_version": "careframe-answer-contract/1.0",
+  "status_values": [
+    "reported",
+    "denied",
+    "unknown",
+    "unclear",
+    "declined",
+    "not_assessed"
+  ],
+  "value": "문진 응답에서 확인한 내용만 기록하는 문자열. 상태가 reported가 아니면 null을 사용한다.",
+  "subject_values": [
+    "self",
+    "other",
+    "unclear"
+  ],
+  "temporality_values": [
+    "current",
+    "historical",
+    "unclear"
+  ],
+  "evidence": {
+    "turn_id": "응답이 나온 대화 turn 식별자",
+    "quote": "응답 원문에서 사실을 뒷받침하는 짧은 인용",
+    "question_id": "이 응답을 수집한 질문 ID 또는 null"
+  },
+  "rules": [
+    "묻지 않은 항목은 not_assessed로 둔다.",
+    "모름, 불명확함, 답변 거부를 서로 다른 상태로 둔다.",
+    "부정 응답은 해당 질문에 대한 답변일 때만 denied로 기록한다.",
+    "환자 답변 예시는 원본에 없으므로 생성하지 않았다."
+  ],
+  "mapping_note": "이 계약은 기존 CareFrame 대화 상태의 답변 근거 규칙이다. FHIR QuestionnaireResponse에 대한 전송 매핑은 아직 정의하지 않았다."
+}

@@ -32,5 +32,65 @@ describe('음성 제어 불변조건 — 가짜 transport로 검증 (실제 음�
   await Promise.resolve();await Promise.resolve();expect(stop).toHaveBeenCalled();expect(m.close).toHaveBeenCalled();
  });
  it('종료와 연결 오류에서 앱이 소유한 마이크 트랙 종료',async()=>{await voice.connect();voice.close();expect(stop).toHaveBeenCalled();});
+ it('이어 말한 답변의 전사를 기다린 뒤 최신 질문을 재생',async()=>{
+  await voice.connect();
+  transcript.mockImplementationOnce(async()=>{voice.speak('다음 질문');return true;});
+  emit({type:'input_audio_buffer.speech_started',item_id:'u1'});
+  emit({type:'input_audio_buffer.speech_stopped',item_id:'u1'});
+  emit({type:'input_audio_buffer.speech_started',item_id:'u2'});
+  emit({type:'input_audio_buffer.speech_stopped',item_id:'u2'});
+  emit({type:'input_audio_buffer.committed',item_id:'u2',previous_item_id:'u1'});
+  emit({type:'conversation.item.input_audio_transcription.completed',item_id:'u1',transcript:'첫 답변'});
+  await vi.waitFor(()=>expect(transcript).toHaveBeenCalledTimes(1));
+  expect(m.send).not.toHaveBeenCalled();
+  emit({type:'conversation.item.input_audio_transcription.completed',item_id:'u2',transcript:''});
+  await vi.waitFor(()=>expect(m.send).toHaveBeenCalledTimes(1));
+  expect(transcript).toHaveBeenCalledTimes(1);
+  expect(m.close).not.toHaveBeenCalled();
+ });
+ it('선행 대화 항목이 늦게 도착하면 대기 전사 처리를 재개',async()=>{
+  await voice.connect();
+  emit({type:'input_audio_buffer.committed',item_id:'u2',previous_item_id:'assistant1'});
+  emit({type:'conversation.item.input_audio_transcription.completed',item_id:'u2',transcript:'두 번째 답변'});
+  await Promise.resolve();expect(transcript).not.toHaveBeenCalled();
+  emit({type:'conversation.item.added',item:{id:'assistant1',role:'assistant'}});
+  await vi.waitFor(()=>expect(transcript).toHaveBeenCalledTimes(1));
+  await vi.waitFor(()=>expect(voice.hasPending).toBe(false));
+ });
+ it('이전 질문의 늦은 음성 전사가 현재 질문 연결을 닫지 않음',async()=>{
+  await voice.connect();voice.speak('첫 질문');
+  emit({type:'response.created',response:{id:'r1',metadata:{generation:'1'}}});
+  voice.interrupt();voice.speak('둘째 질문');
+  emit({type:'response.created',response:{id:'r2',metadata:{generation:'3'}}});
+  emit({type:'response.output_audio_transcript.done',response_id:'r1',transcript:'첫 질문'});
+  expect(errors).not.toHaveBeenCalled();expect(m.close).not.toHaveBeenCalled();
+  emit({type:'response.output_audio_transcript.done',response_id:'r2',transcript:'승인되지 않은 말'});
+  expect(m.close).toHaveBeenCalled();
+ });
+ it('빈 전사를 건너뛰고 세 번째 이후 답변도 계속 처리',async()=>{
+  await voice.connect();
+  transcript.mockImplementation(async()=>{voice.speak('다음 질문');return true;});
+  let previousId:string|null=null;
+  for(const [i,text] of ['명치가 불편해요','아니요','','아니요','없어요'].entries()) {
+   const id=`u${i}`;
+   emit({type:'input_audio_buffer.speech_started',item_id:id});
+   emit({type:'input_audio_buffer.speech_stopped',item_id:id});
+   emit({type:'input_audio_buffer.committed',item_id:id,previous_item_id:previousId});
+   emit({type:'conversation.item.input_audio_transcription.completed',item_id:id,transcript:text});
+   await vi.waitFor(()=>expect(voice.hasPending).toBe(false));previousId=id;
+  }
+  expect(transcript).toHaveBeenCalledTimes(4);expect(m.send).toHaveBeenCalledTimes(4);
+  expect(errors).not.toHaveBeenCalled();expect(m.close).not.toHaveBeenCalled();
+ });
+ it('일시정지나 종료 시 보류 질문을 재생하지 않음',async()=>{
+  await voice.connect();
+  emit({type:'input_audio_buffer.speech_started',item_id:'u1'});
+  voice.speak('보류 질문');voice.pause(true);
+  emit({type:'input_audio_buffer.speech_stopped',item_id:'u1'});
+  emit({type:'conversation.item.input_audio_transcription.completed',item_id:'u1',transcript:''});
+  await vi.waitFor(()=>expect(voice.hasPending).toBe(false));voice.pause(false);
+  expect(m.send).not.toHaveBeenCalled();
+  voice.close();voice.speak('종료 뒤 질문');expect(m.send).not.toHaveBeenCalled();
+ });
  it('연결 실패에서 마이크 트랙 종료',async()=>{m.connect.mockRejectedValue(new Error('failed'));await expect(voice.connect()).rejects.toThrow();expect(stop).toHaveBeenCalled();});
 });

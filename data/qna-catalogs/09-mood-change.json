@@ -1,0 +1,351 @@
+{
+  "catalog_schema_version": "careframe-qna-catalog/0.2.0",
+  "case": {
+    "number": 9,
+    "id": "cpx-09-mood-change",
+    "title": "기분 변화",
+    "category": "symptom",
+    "draft_status": "outline_draft",
+    "clinical_review": "not_reviewed",
+    "activation_status": "inactive",
+    "field_mapping_status": "not_mapped_to_current_app",
+    "question_count": 12,
+    "source_derived_question_count": 0
+  },
+  "source_material": [
+    {
+      "type": "user_supplied_topic_list",
+      "source_id": "cpx-48-topic-list-2026-10-09",
+      "content_note": "주제명만 제공됨. 해당 임상표현의 CPX 질문 원문은 제공되지 않아 문항은 임시 골격으로 작성했다."
+    }
+  ],
+  "answer_contract_ref": "answer-contract.json",
+  "questionnaire": {
+    "resourceType": "Questionnaire",
+    "id": "cpx-09-mood-change",
+    "url": "urn:careframe:questionnaire:cpx-09-mood-change",
+    "version": "0.1.0",
+    "name": "CPX09MoodChange",
+    "title": "기분 변화",
+    "status": "draft",
+    "experimental": true,
+    "language": "ko-KR",
+    "subjectType": [
+      "Patient"
+    ],
+    "description": "초안 문진 질문 카탈로그. 임상 검토 전이며 현재 실행 문진에는 연결되지 않았다.",
+    "item": [
+      {
+        "linkId": "group-opening",
+        "text": "시작 질문",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-001",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "chief_complaint"
+              }
+            ],
+            "text": "최근 기분이나 행동에서 가장 달라진 점은 무엇인가요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-symptom_course",
+        "text": "증상 경과",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-002",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "onset_time"
+              }
+            ],
+            "text": "언제부터 이 증상이 시작됐나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-003",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "episode_duration"
+              }
+            ],
+            "text": "한 번 나타나면 보통 얼마나 지속되나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-004",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "course_change"
+              }
+            ],
+            "text": "처음 시작된 뒤 증상이 어떻게 달라졌나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-associated_symptoms",
+        "text": "함께 나타난 증상",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-005",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "associated_symptoms"
+              }
+            ],
+            "text": "함께 나타나는 다른 증상이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-history_and_medicine",
+        "text": "관련 이력과 복용약",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-006",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "similar_episode_history"
+              }
+            ],
+            "text": "이전에 비슷한 증상을 겪으신 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-007",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "current_medications"
+              }
+            ],
+            "text": "현재 복용하고 있는 약이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-impact_and_goals",
+        "text": "생활 영향과 확인할 점",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-008",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "daily_activity_impact"
+              }
+            ],
+            "text": "이 증상이 일상생활에 어떤 영향을 주나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-009",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "patient_concern"
+              }
+            ],
+            "text": "오늘 가장 걱정되거나 확인하고 싶은 점은 무엇인가요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-topic_specific",
+        "text": "주제별 초안 질문",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-010",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "mood_quality"
+              }
+            ],
+            "text": "주로 어떤 기분 변화를 느끼시나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-011",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "sleep_energy"
+              }
+            ],
+            "text": "수면이나 에너지 수준에 변화가 있었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-012",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "function"
+              }
+            ],
+            "text": "이 변화가 일상생활에 어떤 영향을 주나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      }
+    ]
+  },
+  "item_annotations": [
+    {
+      "link_id": "q-001",
+      "field_id": "chief_complaint",
+      "answer_type": "free_text",
+      "source_anchor": null,
+      "source_question_id": null,
+      "content_review": "not_reviewed",
+      "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
+    },
+    {
+      "link_id": "q-002",
+      "field_id": "onset_time",
+      "answer_type": "free_text",
+      "source_anchor": null,
+      "source_question_id": null,
+      "content_review": "not_reviewed",
+      "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
+    },
+    {
+      "link_id": "q-003",
+      "field_id": "episode_duration",
+      "answer_type": "free_text",
+      "source_anchor": null,
+      "source_question_id": null,
+      "content_review": "not_reviewed",
+      "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
+    },
+    {
+      "link_id": "q-004",
+      "field_id": "course_change",
+      "answer_type": "free_text",
+      "source_anchor": null,
+      "source_question_id": null,
+      "content_review": "not_reviewed",
+      "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
+    },
+    {
+      "link_id": "q-005",
+      "field_id": "associated_symptoms",
+      "answer_type": "free_text",
+      "source_anchor": null,
+      "source_question_id": null,
+      "content_review": "not_reviewed",
+      "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
+    },
+    {
+      "link_id": "q-006",
+      "field_id": "similar_episode_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": null,
+      "source_question_id": null,
+      "content_review": "not_reviewed",
+      "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
+    },
+    {
+      "link_id": "q-007",
+      "field_id": "current_medications",
+      "answer_type": "free_text",
+      "source_anchor": null,
+      "source_question_id": null,
+      "content_review": "not_reviewed",
+      "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
+    },
+    {
+      "link_id": "q-008",
+      "field_id": "daily_activity_impact",
+      "answer_type": "free_text",
+      "source_anchor": null,
+      "source_question_id": null,
+      "content_review": "not_reviewed",
+      "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
+    },
+    {
+      "link_id": "q-009",
+      "field_id": "patient_concern",
+      "answer_type": "free_text",
+      "source_anchor": null,
+      "source_question_id": null,
+      "content_review": "not_reviewed",
+      "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
+    },
+    {
+      "link_id": "q-010",
+      "field_id": "mood_quality",
+      "answer_type": "free_text",
+      "source_anchor": null,
+      "source_question_id": null,
+      "content_review": "not_reviewed",
+      "sensitivity": "sensitive",
+      "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
+    },
+    {
+      "link_id": "q-011",
+      "field_id": "sleep_energy",
+      "answer_type": "yes_no_detail",
+      "source_anchor": null,
+      "source_question_id": null,
+      "content_review": "not_reviewed",
+      "sensitivity": "sensitive",
+      "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
+    },
+    {
+      "link_id": "q-012",
+      "field_id": "function",
+      "answer_type": "free_text",
+      "source_anchor": null,
+      "source_question_id": null,
+      "content_review": "not_reviewed",
+      "sensitivity": "sensitive",
+      "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
+    }
+  ]
+}
