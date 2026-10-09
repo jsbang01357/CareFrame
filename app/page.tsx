@@ -194,9 +194,18 @@ export default function Home() {
     const sessionPersona = selectedPersona;
     const s = initialState(uuid(), { age: ageNumber, sex: sexInput }, selectedCpx?.id || null, selectedCpx ? null : selectedTopic, sessionPersona); const greeting = firstAction(selectedCpx?.title, sessionPersona); apply(s, greeting); started.current = lastActive.current = Date.now();
     if (!withVoice) return;
+    await connectVoice();
+  }
+  async function connectVoice() {
+    const s = stateRef.current;
+    if (!s || busyRef.current || ['review','finished','out_of_scope'].includes(s.phase)) return;
+    const epoch = sessionEpoch.current;
+    voiceRef.current?.close(); voiceRef.current = null; setVoiceStatus('connecting'); setError(''); setVoicePaused(false);
+    let voice: VoiceController | null = null;
     try {
       const { VoiceController } = await import('@/lib/voice/controller');
-      const voice = new VoiceController({ status: setVoiceStatus, error: setError,
+      if (epoch !== sessionEpoch.current) return;
+      voice = new VoiceController({ status: status => { setVoiceStatus(status); setVoicePaused(status === 'paused'); }, error: setError,
         questionId: () => stateRef.current?.last_question_id || null,
         delivery: status => {
           const s = stateRef.current; if (!s) return;
@@ -204,7 +213,7 @@ export default function Home() {
           if (status === 'completed' && ['review', 'finished', 'out_of_scope'].includes(s.phase) && !terminalUrgentSummaryPending.current && !voiceRef.current?.hasQueuedSpeech) {
             if (closingVoiceTimer.current) clearTimeout(closingVoiceTimer.current);
             // 현재 출력 이벤트 처리가 끝난 뒤 연결을 닫는다.
-            queueMicrotask(() => { voice.close(); if (voiceRef.current === voice) voiceRef.current = null; });
+            queueMicrotask(() => { voice?.close(); if (voiceRef.current === voice) voiceRef.current = null; });
           }
         },
         transcript: async item => {
@@ -216,9 +225,11 @@ export default function Home() {
           await submit('answer', makeTurn(item.text, 'voice_transcript', item.id, item.previousId, q));
           return failedRef.current === null;
         },
-      }, sessionPersona); voiceRef.current = voice;
-      await voice.connect(); voice.speak(greeting.approved_text);
-    } catch (e) { voiceRef.current?.close(); voiceRef.current = null; setError(e instanceof Error ? e.message : '마이크 연결에 실패했습니다. 글로 답할 수 있어요.'); }
+      }, s.persona_id); voiceRef.current = voice;
+      await voice.connect();
+      if (epoch !== sessionEpoch.current || voiceRef.current !== voice || ['review','finished','out_of_scope'].includes(stateRef.current?.phase || '')) { voice.close(); return; }
+      lastActive.current = Date.now(); voice.speak(nextRef.current.approved_text);
+    } catch (e) { voice?.close(); if (epoch === sessionEpoch.current && voiceRef.current === voice) { voiceRef.current = null; setError(e instanceof Error ? e.message : '마이크 연결에 실패했습니다. 글로 답할 수 있어요.'); } }
   }
   function sendText() {
     if (!input.trim() || busy) return;
@@ -300,7 +311,7 @@ export default function Home() {
             </div>}
             {busy && <p role="status" className="processing"><span className="spinner"/>{slow ? '말씀하신 내용을 확인하고 있어요. 취소할 수 있어요.' : '말씀하신 내용을 확인하는 중…'}<button className="text-button" onClick={() => abortRef.current?.abort()}>취소</button></p>}
             {fixture ? <div className="fixture-input"><strong>{caseId} · {scenario.label}</strong><p>이 입력의 사실 후보는 미리 작성되어 있습니다.</p>{scenario.steps[step] ? <><blockquote>{scenario.steps[step].text}</blockquote><button className="primary" onClick={fixtureStep}>준비된 발언 반영 ({step+1}/{scenario.steps.length})</button></> : <p>준비된 발언을 모두 반영했어요. 지금까지의 자료를 확인하세요.</p>}</div> : <div className="text-input"><label htmlFor="answer">{correction ? '전사 정정 · 전체 대체 문장' : '글로 답하기'}</label>{correction && <p>이전 발언: “{correction.text}” <button className="text-button" onClick={() => { setCorrection(null); setInput(''); }}>정정 취소</button></p>}<textarea id="answer" value={input} maxLength={2000} disabled={busy || (Boolean(ended) && !correction)} onChange={e => setInput(e.target.value)} placeholder="떠오르는 그대로 말씀해 주세요."/><button className="primary" disabled={busy || !input.trim() || (Boolean(ended) && !correction)} onClick={sendText}>{correction ? '정정 반영' : '답변 보내기'} →</button></div>}
-            <div className="conversation-actions">{!fixture && voiceRef.current && <button className="secondary" disabled={busy} onClick={() => { const pause = !voicePaused; voiceRef.current?.pause(pause); setVoicePaused(pause); lastActive.current = Date.now(); }}>{voicePaused ? '마이크 다시 켜기' : '마이크 일시정지'}</button>}{ended ? <button className="secondary" disabled={busy || ending} onClick={() => setShowReport(true)}>의료진 검토 화면 보기</button> : <button className="secondary" disabled={busy || ending} onClick={() => void end()}>{ending ? '마지막 발언 확인 중…' : '지금까지 정리하고 종료'}</button>}</div>
+            <div className="conversation-actions">{!fixture && !ended && <button className="secondary" disabled={busy || ending || voiceStatus === 'connecting'} onClick={() => { setStatusNote('현재 질문부터 음성을 다시 연결해요. 처리되지 않은 마지막 답변은 다시 말해 주세요.'); void connectVoice(); }}>음성 다시 연결</button>}{!fixture && voiceRef.current && voiceStatus !== 'disconnected' && <button className="secondary" disabled={busy} onClick={() => { const pause = !voicePaused; voiceRef.current?.pause(pause); setVoicePaused(pause); lastActive.current = Date.now(); }}>{voicePaused ? '마이크 다시 켜기' : '마이크 일시정지'}</button>}{ended ? <button className="secondary" disabled={busy || ending} onClick={() => setShowReport(true)}>의료진 검토 화면 보기</button> : <button className="secondary" disabled={busy || ending} onClick={() => void end()}>{ending ? '마지막 발언 확인 중…' : '지금까지 정리하고 종료'}</button>}</div>
             <p className="storage-note">새로고침하면 기록이 사라져요. 필요한 자료는 인쇄해 주세요.</p>
           </section>
           <aside className="history-panel"><div className="history-title"><h2>지금까지 들은 내용</h2><span>버전 {state.revision}</span></div><div className="fact-list">{state.facts.filter(f => f.status !== 'not_assessed').map(f => <div className="fact-item" key={f.field_id}><span>{fields[f.field_id]}</span><strong>{f.value || statusLabels[f.status]}</strong>{f.evidence.map((e,i) => <button className="evidence-link" key={i} onClick={() => evidence(e.turn_id)}>원문 확인 ↗</button>)}</div>)}{state.facts.every(f=>f.status==='not_assessed') && <p className="muted">말씀하신 내용이 확인되면 여기에 채워져요.</p>}</div><details className="unassessed"><summary>아직 확인하지 못한 항목 ({state.facts.filter(f=>f.status==='not_assessed').length})</summary>{state.facts.filter(f=>f.status==='not_assessed').map(f=><p key={f.field_id}>{fields[f.field_id]} · 미확인</p>)}</details><div className="transcript-title"><h3>대화 원문</h3><small>자동 전사는 사실 확인이 필요해요</small></div>{state.turns.map(t => <div className={`transcript ${state.turns.some(x=>x.replaces_turn_id===t.id) ? 'superseded' : ''}`} id={`turn-${t.id}`} key={t.id}><small>{t.origin==='voice_transcript' ? '자동 전사 · 수정 가능' : t.replaces_turn_id ? '사용자 정정' : '텍스트 진술'} · {t.id.slice(0,8)}</small>{t.prompted_question_id && <p className="prompt-context">질문: {questions[questionField(t.prompted_question_id)!] || '지원 범위 확인'}</p>}<p>{t.text}</p>{!fixture && !state.turns.some(x=>x.replaces_turn_id===t.id) && <button disabled={busy} className="text-button" onClick={() => { setCorrection(t); setInput(t.text); setShowReport(false); voiceRef.current?.pause(true); }}>이 발언 정정</button>}</div>)}</aside>

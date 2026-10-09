@@ -35,9 +35,14 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     ".next-qa/types/**/*.ts",
-    ".next-qa/dev/types/**/*.ts"
+    ".next-qa/dev/types/**/*.ts",
+    ".next-cloudflare/types/**/*.ts",
+    ".next-cloudflare/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".open-next",
+    ".next-cloudflare",
+    "cloudflare-env.d.ts"
   ]
 }

@@ -1,5 +1,17 @@
 # CareFrame 구현 진행
 
+## GitHub 자동 배포 준비 · 2026-10-09
+- main push 및 수동 실행은 전체 회귀·타입·Workers dry-run 후 배포하고, PR은 검사만 수행하도록 workflow를 작성했다. 성공 후 유료 호출 없이 서버 health를 확인한다.
+- CI에서 OpenAI 키 없이 번들을 검사하도록 수정했다. 키는 Worker secret에만 유지하고 Cloudflare 배포용 토큰만 GitHub secret에 필요하다.
+- 배포 대상 index 복사본 테스트 84/84·타입 검사, YAML·격리 Workers 빌드·dry-run 통과. 현재 별도 추출 변경을 포함한 작업 트리 테스트는 91/91이다.
+- main commit·push는 자동 승인 검토가 거절해 사용자 승인을 요청했다. 토큰 등록·GitHub 실행·자동 배포 검증은 아직 남아 있으며 활성화 완료로 판단하지 않는다.
+
+## 공개 호스팅 · 2026-10-09
+- https://careframe.jisong.dev 에 Cloudflare Worker `careframe`을 배포했다. 키는 사용자 승인 후 서버 secret으로 등록하고 로컬 환경 파일 없는 격리 빌드·번들 검사로 업로드 파일에서 분리했다.
+- Next 16.4 preview manifest 누락에 따른 초기 1101을 upstream 수정으로 해결했다. 최종 버전 `755f19dc-5981-4da8-b096-d30c2685960d`에서 HTTPS 화면, health, Origin 차단, 영희·철수 토큰, 실제 가상 문진 추출·마지막 요약을 확인했다.
+- 타입·빌드·Workers dry-run 통과. 전체 테스트 75/84, 기존 위험 신호/종료 기대 불일치 9개가 남아 있다. 실제 마이크·임상 검증은 별도이며 상세 근거는 `evaluation/hosting-summary.md`다.
+- 아래 이전 시점의 공개 배포 미실행 기록은 역사적 상태다.
+
 ## M0 — 2026-10-09
 - 완료: handoff와 설계 검토, 단일 Next.js 앱 설정 작성.
 - 실행 확인: Node/npm 존재. 현재 프로세스와 프로젝트에 API 키 설정 없음.
@@ -46,3 +58,9 @@
 - 동일 상태에서 응급 도움·오늘 진료·엄격한 조건의 휴식 관찰 안내를 선택한다. 임상 검증 전 가상 데모 규칙이다. 마지막 음성 안내를 재생하기 전에 연결이 닫히는 순서를 수정했다.
 - 검증: 코드 테스트 65/65, 타입 검사, 프로덕션 빌드 성공. 실제 API/브라우저에서 가상 환자의 문진 완료·위험 질문 클릭·의료진 편집/복사·원문 정정/재검토 흐름을 확인했다. 세부 근거와 한계는 `evaluation/abdominal-summary.md`에 기록했다.
 - 남은 외부 확인: 실제 마이크와 최종 음성 청취, 실제 A4/PDF 출력, 의료진 문구·임상 규칙 검토. 공개 배포는 하지 않았다.
+
+## 음성 취소 오류로 연결 종료 · 2026-10-09
+- 사용자 화면에서 `response_cancel_not_active`와 음성 연결 꺼짐을 확인했다. 서버는 3000 포트에서 실행 중이며 `/api/health`는 HTTP 200·API 키 설정됨으로 응답했다.
+- [공식 Realtime response.cancel 문서](https://developers.openai.com/api/reference/resources/realtime/client-events#response.cancel)는 취소 대상 없음 오류가 세션에 영향을 주지 않는다고 명시한다. 이 오류를 치명적 연결 오류로 처리하던 앱 동작을 수정했다. 페이지 종료 후 지연 오류와 중복 종료도 무시한다. 정확한 취소 이벤트 순서는 확보하지 못했으며 응답 종료·취소 경합 재현은 가짜 transport 테스트다.
+- 음성 테스트 18/18, 타입 검사 통과. 별도 탭에서 새로고침 후 설정 상태 정상 표시를 확인하고 `evaluation/screenshots/api-refresh.jpg`에 저장했다. 실제 마이크·청취 재시험은 미실행이다.
+- 전체 테스트 당시 62/71: 함께 변경 중인 응급 안내 후 문진 계속 정책과 기존 즉시 중단 기대값이 다른 9개 실패가 남아 있다. 이 오류 수정에서 문진 정책이나 해당 기대값은 변경하지 않았다.

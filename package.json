@@ -9,7 +9,13 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "evaluate:live": "tsx scripts/evaluate-live.ts",
-    "prepare:audio": "tsx scripts/prepare-urgent-audio.ts"
+    "prepare:audio": "tsx scripts/prepare-urgent-audio.ts",
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
+    "deploy:dry-run": "npm run build:cloudflare && node scripts/check-deploy-bundle.mjs && wrangler deploy --dry-run",
+    "deploy": "npm run build:cloudflare && node scripts/check-deploy-bundle.mjs && wrangler deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "deploy:secret": "node scripts/deploy-secret.mjs",
+    "verify:hosting": "node --import tsx scripts/verify-hosting.ts"
   },
   "dependencies": {
     "@openai/agents": "0.20.0",
@@ -20,12 +26,15 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "5.20261009.1",
+    "@opennextjs/cloudflare": "1.20.9",
     "@types/node": "26.6.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "tsx": "4.23.15",
     "typescript": "7.0.2",
-    "vitest": "5.0.3"
+    "vitest": "5.0.3",
+    "wrangler": "4.149.0"
   },
   "type": "module"
 }

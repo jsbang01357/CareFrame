@@ -71,6 +71,30 @@ npm run prepare:audio
 
 상태는 브라우저 메모리에만 있다. 주호소 선택과 나이·성별을 포함한 세션은 새로고침 시 삭제되며 DB/로그인/세션 맵/localStorage는 없다. 나이·성별은 추출 모델에 보내지 않는다. 복통 문진 경로와 실제 현재 질문은 추출 모델에 전달한다. 의료진 편집본도 브라우저 메모리에만 보관하며 외부 API에 전송하지 않는다. Responses의 store=false와 앱의 무저장은 공급자 측 보존이 없다는 뜻이 아니다.
 
-## 배포 전 남은 확인
+## 호스팅
 
-실제 음성 V01~V03, 최종 고정 안내 음성 수동 확인, 임상 프로토콜 검토자·일시·버전 기록, 인쇄 용지 검토, 호스팅·사용 예산·요청 접근 제한 확인이 필요하다. 공개 배포는 아직 하지 않았다. Next.js 서버 route가 있으므로 정적 export만으로 배포할 수 없다.
+### GitHub 자동 배포
+
+`.github/workflows/deploy.yml`은 `main` push 시 전체 테스트 → 타입 검사 → 키 없는 Workers 빌드·번들 검사 → 배포 → HTTPS health 검사를 실행한다. PR은 배포 전 검사까지만 실행하며 수동 실행도 가능하다. 실패한 검사 뒤에는 배포하지 않는다. 배포 중인 실행은 취소하지 않고 순서대로 처리한다.
+
+자동 배포 인증에는 저장소 secret `CLOUDFLARE_API_TOKEN`이 필요하다. [Cloudflare 공식 설정 안내](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)에 따라 Edit Cloudflare Workers 토큰을 만들되 해당 배포 계정과 `jisong.dev`에만 범위를 제한한다. GitHub [CareFrame Actions secrets](https://github.com/jsbang01357/CareFrame/settings/secrets/actions)에 등록하거나 터미널에서 아래 명령의 비공개 프롬프트에 입력한다. 키를 명령 인자나 채팅에 붙이지 않는다.
+
+```sh
+gh secret set CLOUDFLARE_API_TOKEN --repo jsbang01357/CareFrame
+```
+
+OpenAI 키를 GitHub에 복사하지 않는다. 기존 Cloudflare Worker secret을 배포 후에도 유지한다. Cloudflare 배포 토큰이 아직 등록되지 않았다면 검사 후 배포 단계가 명시적으로 실패한다. 실행 결과는 [GitHub Actions](https://github.com/jsbang01357/CareFrame/actions)에서 확인한다.
+
+가상 증례 데모: [careframe.jisong.dev](https://careframe.jisong.dev). Cloudflare Worker `careframe`이 Next.js 화면과 서버 API를 함께 제공한다. 로컬 개발 서버를 꺼도 배포 사이트는 동작한다. 새로고침 시 문진 기록은 기존 설계대로 비워진다.
+
+```sh
+npm run deploy:dry-run
+npm run deploy
+npm run verify:hosting
+```
+
+Wrangler 로그인과 해당 계정의 배포 권한이 필요하다. `verify:hosting`은 가상 데이터를 사용해 실제 유료 추출·요약 API와 음성 토큰을 검증한다. 마이크는 열지 않으며 키·토큰 값은 출력하지 않는다.
+
+`OPENAI_API_KEY`는 사용자 승인 후 Cloudflare 서버 secret으로 등록했다. 키를 교체할 때 `npm run deploy:secret`을 실행한다. 빌드는 `.env.local`을 제외한 임시 복사본에서 실행하고 업로드 전 번들에 기존 키 값이 없는지 검사한다. 임시 빌드 디렉터리는 결과 확인을 위해 보존된다. Next 16.4와 OpenNext 1.20.9 호환을 위해 preview manifest 수집 수정([upstream PR #1356](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356))을 빌드 복사본에 적용한다. 어댑터 업그레이드 시 이 수정의 필요 여부를 확인한다.
+
+실제 도메인에서 HTTPS·화면·health·양쪽 캐릭터 토큰·가상 답변 추출·마지막 요약을 확인했다. 상세 결과는 `evaluation/hosting-summary.md`다. 최초 호스팅 당시 9개 실패 기대값은 이후 자동 배포 준비에서 요청된 문진 계속 정책에 맞췄고, 응급 경고·근거 유지 검증을 포함한 배포 대상 테스트 84/84가 통과했다. 실제 마이크 V01~V03, 최종 안내 청취, 임상 프로토콜·A4 출력 검토, 사용 예산·요청 접근 제한 확인은 남아 있다.

@@ -15,11 +15,14 @@ export class VoiceController {
   private audio?: HTMLAudioElement;
   private queue = new TranscriptQueue();
   private previous = new Map<string, string | null>();
+  private lastInputId: string | null = null;
   private bindings = new Map<string, string | null>();
   private draining = false;
   private closed = false;
   private speaking = false;
+  private playbackPending = false;
   private userSpeaking = false;
+  private activeInputId: string | null = null;
   private paused = false;
   private queuedSpeech: string | null = null;
   private approved: string | null = null;
@@ -58,7 +61,7 @@ export class VoiceController {
       if (this.closed) return;
       const raw = event.error as { code?: unknown; name?: unknown; error?: { code?: unknown } } | undefined;
       const code = raw?.error?.code ?? raw?.code ?? raw?.name;
-      // 응답 완료와 취소가 경합하면 발생한다. API 문서상 세션은 유지된다.
+      // 취소할 응답이 없는 경우다. API 문서상 세션은 유지된다.
       if (code === 'response_cancel_not_active') return;
       const detail = typeof code === 'string' && /^[a-zA-Z0-9_-]{1,80}$/.test(code) ? ` (${code})` : '';
       this.cb.error(`음성 통신 연결 오류${detail}. 글로 답하거나 연결을 다시 시작해 주세요.`); this.close();
@@ -76,38 +79,64 @@ export class VoiceController {
     if (e.type === 'response.created') {
       const response = e.response as { id?: string; metadata?: { generation?: string } } | undefined;
       if (!response || Number(response.metadata?.generation) !== this.generation || !this.approved || this.userSpeaking) {
-        this.interrupt();
+        // 이전 응답만 취소한다. 현재 질문·보류 질문까지 지우지 않는다.
+        if (response?.id) this.session?.transport.sendEvent({ type: 'response.cancel', response_id: response.id });
         return;
       }
       this.validResponseId = response.id || null;
     }
     if (e.type === 'input_audio_buffer.speech_started') {
+      this.registerInput(id);
       const hadInterruptedQuestion = this.speaking;
       this.interrupt(false); this.userSpeaking = true;
+      this.activeInputId = id;
       this.pendingAudio.add(id);
       this.bindings.set(id, hadInterruptedQuestion ? null : this.cb.questionId());
       this.cb.status('listening');
     }
-    if (e.type === 'input_audio_buffer.speech_stopped') { this.userSpeaking = false; this.cb.status('processing'); this.flushSpeech(); }
-    if (e.type === 'input_audio_buffer.committed') this.previous.set(id, typeof e.previous_item_id === 'string' ? e.previous_item_id : null);
+    if (e.type === 'input_audio_buffer.speech_stopped' && (!id || id === this.activeInputId)) { this.endInput(id); this.cb.status('processing'); this.flushSpeech(); }
+    if (e.type === 'input_audio_buffer.committed') {
+      this.registerInput(id);
+      this.pendingAudio.add(id);
+      this.endInput(id);
+    }
     if (e.type === 'conversation.item.added' || e.type === 'conversation.item.created') {
       const item = e.item as { id?: string; role?: string } | undefined;
       if (item?.id && item.role !== 'user') { this.queue.acknowledge(item.id); void this.drain(); }
     }
     if (e.type === 'conversation.item.input_audio_transcription.completed' && id && typeof e.transcript === 'string') {
       this.pendingAudio.delete(id);
+      this.endInput(id);
       this.queue.add({ id, text: e.transcript, previousId: this.previous.get(id) ?? null, questionId: this.bindings.get(id) ?? null });
       void this.drain();
     }
     if (e.type === 'conversation.item.input_audio_transcription.failed') {
       this.pendingAudio.delete(id); this.queue.acknowledge(id);
+      this.endInput(id);
       this.cb.error('음성 전사에 실패했습니다. 글로 내용을 확인해 주세요.'); this.pause(true);
     }
     if (e.type === 'output_audio_buffer.started') {
-      if (!this.approved || this.userSpeaking || (e.response_id && e.response_id !== this.validResponseId)) { this.interrupt(); return; }
+      if (e.response_id && e.response_id !== this.validResponseId) return;
+      if (!this.approved || this.userSpeaking) { this.interrupt(); return; }
       this.speaking = true; this.cb.status('speaking'); this.cb.delivery('playing');
     }
-    if (e.type === 'output_audio_buffer.stopped' && this.speaking && (!e.response_id || e.response_id === this.validResponseId)) { this.speaking = false; this.cb.delivery('completed'); this.cb.status('listening'); this.flushSpeech(); }
+    if (e.type === 'output_audio_buffer.stopped' && this.speaking && (!e.response_id || e.response_id === this.validResponseId)) { this.speaking = false; this.playbackPending = false; this.cb.delivery('completed'); this.cb.status('listening'); this.flushSpeech(); }
+    if (e.type === 'output_audio_buffer.cleared' && this.playbackPending && e.response_id === this.validResponseId) {
+      this.speaking = false;
+      this.playbackPending = false;
+      this.queuedSpeech ??= this.approved;
+      this.approved = null; this.validResponseId = null;
+      this.cb.delivery('interrupted'); this.cb.status(this.paused ? 'paused' : 'listening');
+      this.flushSpeech();
+    }
+    if (e.type === 'response.done') {
+      const response = e.response as { id?: string; status?: string } | undefined;
+      if (this.playbackPending && response?.id === this.validResponseId && response.status === 'cancelled') {
+        this.handle({ type: 'output_audio_buffer.cleared', response_id: response.id });
+      } else if (response?.id === this.validResponseId && ['failed', 'incomplete'].includes(response.status || '')) {
+        this.cb.error('질문 음성 생성이 중단됐습니다. 음성 다시 연결을 눌러 이어가 주세요.'); this.close();
+      }
+    }
     if (e.type === 'response.output_audio_transcript.done' || e.type === 'response.audio_transcript.done') {
       const normalize = (s: string) => s.replace(/[\s\p{P}\p{S}]/gu, '');
       if (e.response_id === this.validResponseId && this.approved && typeof e.transcript === 'string' && normalize(e.transcript) !== normalize(this.approved)) {
@@ -115,12 +144,24 @@ export class VoiceController {
       }
     }
   }
+  private endInput(id: string) {
+    if (id && id !== this.activeInputId) return;
+    this.activeInputId = null; this.userSpeaking = false;
+  }
+  private registerInput(id: string) {
+    if (!id || this.previous.has(id)) return;
+    // 전체 대화의 previous_item_id에는 전사가 없는 항목도 포함된다.
+    // VAD 감지/커밋 순서로 사용자 음성끼리만 연결한다.
+    this.previous.set(id, this.lastInputId);
+    this.lastInputId = id;
+  }
   private async drain() {
     if (this.draining || this.closed) return;
     this.draining = true;
     try {
       let next;
       while (!this.closed && (next = this.queue.take())) {
+        if (!this.queue.size && this.missingTimer) { clearTimeout(this.missingTimer); this.missingTimer = undefined; }
         // 잡음·무음의 빈 전사는 답변이나 입력 실패로 세지 않는다.
         if (!next.text.trim()) continue;
         if (!await this.cb.transcript(next)) {
@@ -128,7 +169,11 @@ export class VoiceController {
           return;
         }
       }
-      if (this.queue.size && !this.missingTimer) this.missingTimer = setTimeout(() => { this.cb.error('앞선 음성 전사를 확인하지 못했습니다. 글로 답해 주세요.'); this.close(); }, 4000);
+      if (this.queue.size && !this.missingTimer) this.missingTimer = setTimeout(() => {
+        this.missingTimer = undefined;
+        if (this.closed || !this.queue.size || this.draining) return;
+        this.cb.error('앞선 음성 전사가 오래 지연되고 있습니다. 글로 답해 주세요.'); this.close();
+      }, 30000);
       else if (!this.queue.size && this.missingTimer) { clearTimeout(this.missingTimer); this.missingTimer = undefined; }
     } catch { this.cb.error('음성 입력 처리가 중단됐습니다. 대기 중인 발언은 글로 확인해 주세요.'); this.close(); }
     finally { this.draining = false; this.flushSpeech(); }
@@ -152,11 +197,15 @@ export class VoiceController {
     if (!this.session || this.closed || this.paused || this.speaking || this.draining || this.queue.size || this.userSpeaking || this.pendingAudio.size || !this.queuedSpeech) return;
     const text = this.queuedSpeech; this.queuedSpeech = null;
     this.approved = text;
+    this.validResponseId = null;
+    this.playbackPending = true;
     void this.audio?.play().catch(() => this.cb.error('음성 재생이 차단됐습니다. 화면 질문을 확인해 주세요.'));
     this.session.transport.sendEvent({ type: 'response.create', response: { conversation: 'none', input: [], output_modalities: ['audio'], instructions: `다음 승인 문장만 한국어로 그대로 읽고 아무것도 덧붙이지 마세요: ${text}`, metadata: { generation: String(++this.generation) } } });
   }
   interrupt(clearQueued = true) {
     if (clearQueued) this.queuedSpeech = null;
+    else if (this.playbackPending) this.queuedSpeech ??= this.approved;
+    this.playbackPending = false;
     this.generation++; this.approved = null; this.validResponseId = null;
     if (this.speaking) this.cb.delivery('interrupted');
     try { this.session?.interrupt(); } catch { /* 이미 닫힌 연결 */ }

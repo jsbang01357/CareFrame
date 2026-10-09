@@ -55,11 +55,15 @@ describe('복통 실행 문진과 행동 안내', () => {
     const recurrent = structuredClone(state);recurrent.facts.find(x=>x.field_id==='pattern')!.value='반복되는 통증';
     expect(buildCareGuidance(recurrent).level).toBe('visit');
   });
-  it.each(['rf_abdominal_touch','rf_bloody_stool','rf_cannot_urinate','rf_cannot_pass'] as FieldId[])('추가 위험 항목 %s에 즉시 중단', field => {
+  it.each(['rf_abdominal_touch','rf_bloody_stool','rf_cannot_urinate','rf_cannot_pass'] as FieldId[])('추가 위험 항목 %s의 응급 안내를 유지하며 문진 계속', field => {
     const state = initialState('emergency',undefined,ABDOMINAL_CPX_ID);state.scope='supported';state.last_question_id=`q_${field}`;
     const input=turn(state,'네');const extracted=directAnswer(input)!;
     const result=transition({request_id:'urgent',event:'answer',state,expected_revision:0,utterance:input,target_turn_id:null},extracted);
-    expect(result.next_action.kind).toBe('urgent_help');
+    expect(result.next_action.kind).toBe('ask');
+    expect(result.state.phase).toBe('interviewing');
+    expect(result.state.safety.latched).toBe(true);
+    expect(result.state.safety.triggered_rule_ids).toContain(`R1:${field}`);
+    expect(result.next_action.question_id).not.toBe(`q_${field}`);
     expect(buildCareGuidance(result.state).level).toBe('emergency');
   });
   it('당뇨병과 현재 구토를 함께 보고하면 긴급 안내', () => {

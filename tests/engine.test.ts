@@ -6,6 +6,7 @@ import { validateCandidates, validateStateEvidence } from '@/lib/interview/valid
 import { buildReport } from '@/lib/report/build-report';
 import { TranscriptQueue } from '@/lib/voice/turn-queue';
 import { riskFields, requiredFields, questionField, MAX_ANSWER_TURNS } from '@/data/protocol';
+import { buildCareGuidance } from '@/lib/interview/care-guidance';
 export function runCase(c: FixtureCase) {
   let s = initialState('test-session'); let next;
   for (const [i, part] of c.steps.entries()) {
@@ -24,7 +25,7 @@ describe('handoff 12개 고정 후보: 규칙/상태 회귀 (실제 추출 성�
     const { s, next } = runCase(c);
     switch(c.id) {
       case 'T01': expect(s.completion).toBe('complete'); expect(next.kind).toBe('review'); expect(s.asked_question_ids).not.toContain('q_onset'); expect(fact(s,'fever').status).toBe('not_assessed'); expect(buildReport(s).rows.find(f=>f.field_id==='onset')?.evidence[0].quote).toBe('사흘 전부터'); break;
-      case 'T02': case 'T03': expect(next.kind).toBe('urgent_help'); expect(s.safety.latched).toBe(true); expect(s.last_question_id).toBeNull(); break;
+      case 'T02': case 'T03': expect(['ask','clarify']).toContain(next.kind); expect(s.safety.latched).toBe(true); expect(s.last_question_id).not.toBeNull(); expect(buildCareGuidance(s).level).toBe('emergency'); break;
       case 'T04': expect(fact(s,'rf_black_tarry_stool').status).toBe('unclear'); expect(next.kind).toBe('clarify'); expect(next.question_id).toBe('q_rf_black_tarry_stool'); break;
       case 'T05': expect(fact(s,'vomiting').status).toBe('denied'); expect(fact(s,'medications').status).toBe('unknown'); expect(riskFields.every(f=>fact(s,f).status==='not_assessed')).toBe(true); break;
       case 'T06': expect(s.safety.latched).toBe(false); expect(fact(s,'rf_fainting').status).toBe('not_assessed'); expect(s.contextual_facts[0].subject).toBe('other'); expect(fact(s,'rf_chest_discomfort').status).toBe('denied'); break;
@@ -74,16 +75,16 @@ describe('시스템 불변조건', () => {
     const part:FixtureStep={text:'피를 토한 건 아니에요.',facts:[{field:'rf_vomiting_blood',status:'denied',value:null}]}; const t=makeTurn(part,'fixed',null,s.turns[0].id);
     s=transition({request_id:'r',event:'correct',expected_revision:s.revision,state:s,utterance:t,target_turn_id:s.turns[0].id},fixtureExtraction(part,t)).state;
     for (const event of ['end','confirm'] as const) s=transition({request_id:event,event,expected_revision:s.revision,state:s,utterance:null,target_turn_id:null}).state;
-    expect(s.phase).toBe('urgent_stop'); expect(s.safety.latched).toBe(true); expect(buildReport(s).patientNextAction).toContain('긴급');
+    expect(s.phase).toBe('finished'); expect(s.safety.latched).toBe(true); expect(buildReport(s).patientNextAction).toContain('긴급'); expect(buildCareGuidance(s).level).toBe('emergency');
   });
-  it('범위 판정보다 현재 위험 중단 우선', () => {
+  it('범위 밖으로 종료해도 현재 위험 안내와 근거 유지', () => {
     const part:FixtureStep={text:'발목도 아프고 지금 가슴이 꽉 눌리고 숨이 차요.',scope:'unsupported',facts:[{field:'rf_chest_discomfort',value:'가슴 압박감',quote:'가슴이 꽉 눌리고'},{field:'rf_breathing_difficulty',value:'호흡곤란',quote:'숨이 차요'}]};
-    const t=makeTurn(part); const s=initialState('s'); const r=transition({request_id:'r',event:'answer',expected_revision:0,state:s,utterance:t,target_turn_id:null},fixtureExtraction(part,t)); expect(r.next_action.kind).toBe('urgent_help');
+    const t=makeTurn(part); const s=initialState('s'); const r=transition({request_id:'r',event:'answer',expected_revision:0,state:s,utterance:t,target_turn_id:null},fixtureExtraction(part,t)); expect(r.next_action.kind).toBe('out_of_scope'); expect(r.next_action.approved_text).toContain('119'); expect(r.state.safety.latched).toBe(true); expect(buildCareGuidance(r.state).level).toBe('emergency');
   });
   it('타인 현재 위험을 본인 기록에 합치지 않음', () => {
     const part:FixtureStep={text:'지금 아버지가 쓰러졌어요.',scope:'unsupported',facts:[{field:'rf_fainting',value:'현재 쓰러짐',subject:'other'}]};
     const t=makeTurn(part); const s=initialState('s'); const r=transition({request_id:'r',event:'answer',expected_revision:0,state:s,utterance:t,target_turn_id:null},fixtureExtraction(part,t));
-    expect(r.next_action.kind).toBe('urgent_help'); expect(fact(r.state,'rf_fainting').status).toBe('not_assessed');
+    expect(r.next_action.kind).toBe('out_of_scope'); expect(r.next_action.approved_text).toContain('119'); expect(r.state.safety.triggered_rule_ids).toContain('R3:rf_fainting'); expect(fact(r.state,'rf_fainting').status).toBe('not_assessed');
   });
   it('답변 상한 후 미확인 항목은 partial', () => {
     const s=initialState('s');s.scope='supported';s.accepted_answer_count=MAX_ANSWER_TURNS-1;
