@@ -95,6 +95,6 @@ npm run verify:hosting
 
 Wrangler 로그인과 해당 계정의 배포 권한이 필요하다. `verify:hosting`은 가상 데이터를 사용해 실제 유료 추출·요약 API와 음성 토큰을 검증한다. 마이크는 열지 않으며 키·토큰 값은 출력하지 않는다.
 
-`OPENAI_API_KEY`는 사용자 승인 후 Cloudflare 서버 secret으로 등록했다. 키를 교체할 때 `npm run deploy:secret`을 실행한다. 빌드는 `.env.local`을 제외한 임시 복사본에서 실행하고 업로드 전 번들에 기존 키 값이 없는지 검사한다. 임시 빌드 디렉터리는 결과 확인을 위해 보존된다. Next 16.4와 OpenNext 1.20.9 호환을 위해 preview manifest 수집 수정([upstream PR #1356](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356))을 빌드 복사본에 적용한다. 어댑터 업그레이드 시 이 수정의 필요 여부를 확인한다.
+`OPENAI_API_KEY`는 사용자 승인 후 Cloudflare 서버 secret으로 등록했다. 키를 교체할 때 `npm run deploy:secret`을 실행한다. 빌드는 `.env.local`을 제외한 임시 복사본에서 실행하고 업로드 전 번들에 기존 키 값이 없는지 검사한다. 사용자 승인에 따라 성공한 임시 빌드 복사본은 자동 정리하고 실패본만 진단용으로 보존한다. Next 16.4와 OpenNext 1.20.9 호환을 위해 preview manifest 수집 수정([upstream PR #1356](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356))을 빌드 복사본에 적용한다. 어댑터 업그레이드 시 이 수정의 필요 여부를 확인한다.
 
 실제 도메인에서 HTTPS·화면·health·양쪽 캐릭터 토큰·가상 답변 추출·마지막 요약을 확인했다. 상세 결과는 `evaluation/hosting-summary.md`다. 최초 호스팅 당시 9개 실패 기대값은 이후 자동 배포 준비에서 요청된 문진 계속 정책에 맞췄고, 응급 경고·근거 유지 검증을 포함한 배포 대상 테스트 84/84가 통과했다. 실제 마이크 V01~V03, 최종 안내 청취, 임상 프로토콜·A4 출력 검토, 사용 예산·요청 접근 제한 확인은 남아 있다.

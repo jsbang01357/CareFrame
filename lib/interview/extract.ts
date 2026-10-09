@@ -3,7 +3,7 @@ import { zodTextFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 import { candidateSchema, extractionSchema, type Extraction, type Turn, type InterviewState } from '@/lib/contracts';
 import { fields, fieldIds, questions, yesNoFields, detailFields, positiveAnswer, questionField, SCOPE_QUESTION, isAbdominal } from '@/data/protocol';
-import { isIndirectQuote, validateCandidates, EvidenceError } from './validate-evidence';
+import { isIndirectQuote, retainValidCandidates, preserveRawAnswer } from './validate-evidence';
 const quoteSchema = z.object({ quote: z.string().min(1).max(2000) }).strict();
 const wireBase = candidateSchema.omit({ evidence: true, status: true, value: true }).extend({ evidence: z.array(quoteSchema).min(1).max(8) });
 const wireValue = z.union([
@@ -19,7 +19,7 @@ export async function extract(turn: Turn, state: InterviewState, signal: AbortSi
   if (direct) return direct;
   if (!process.env.OPENAI_API_KEY) throw new Error('missing_api_key');
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, maxRetries: 0, timeout: 14000 });
-  for (let attempt = 0; attempt < 2; attempt++) {
+  try {
   const response = await client.responses.parse({
     model: process.env.EXTRACT_MODEL || 'gpt-4.1', store: false,
     text: { format: zodTextFormat(wireSchema, 'utterance_facts') },
@@ -30,19 +30,19 @@ export async function extract(turn: Turn, state: InterviewState, signal: AbortSi
       { role: 'system', content: '추가 항목 규칙: pain_severity는 명시된 0–10 점수만 원문에 따라 N/10 형식으로 기록한다. duration은 한 번 아픈 지속시간, onset은 최초 시작 시점이므로 서로 혼동하지 않는다. pattern은 지속/반복 양상이며 improving은 현재 나아지고 있는지 별도다. nausea, past_surgical_history, drug_allergies도 명시된 답변만 기록한다. 임신 여부는 연령이나 성별로 추정하지 않는다. diabetes는 본인이 진단받았다고 말한 당뇨병 병력만 기록한다. rf_abdominal_touch는 가볍게 만질 때 심한 통증, rf_cannot_pass는 대변과 방귀 모두 전혀 안 나옴, rf_cannot_urinate는 소변이 전혀 안 나옴, rf_bloody_stool는 현재 혈변을 뜻한다. 단순 변비를 대변과 방귀 모두 불가로 바꾸지 않는다. 배가 아프다는 말만으로 만질 때 심한 통증을 만들지 않는다.' },
       { role: 'user', content: JSON.stringify({ current_scope: state.scope, intake_path: isAbdominal(state) ? '성인 복통 사전문진' : '성인 공통 문진', last_question_id: state.last_question_id, prompted_question: turn.prompted_question_id === 'q_scope' ? SCOPE_QUESTION : questions[questionField(turn.prompted_question_id)!] ?? null, utterance: turn }) },
       { role: 'system', content: 'facts에는 최신 발언에서 실제 진술한 항목만 넣는다. 약 이름을 모른다는 명시적 답변은 unknown이다. 약 종류가 맞는지 추측하면 unclear이다. 명령만 있는 입력에는 facts가 없다. 가족의 사건은 medical_history를 포함하여 항상 subject other이며 본인 과거력으로 바꾸지 않는다. 불편한 위치는 가슴·머리·발목 등 어느 부위든 원문에 명시됐으면 location에 기록한다. 애매한 “가슴 나쁘다”를 가슴 통증·압박감으로 확정하지 않는다. 주호소와 위치를 보존하고 대응 위험 질문에서 의미를 확인한다. quote는 요약하지 않고 원문 철자·문장부호 그대로 복사한다.' },
-      ...(attempt ? [{ role: 'system' as const, content: '앞선 후보가 근거 검증에 실패했습니다. quote를 원문에서 정확히 복사하고 간접 답변 범위를 질문 하나로 한정하세요. 불확실한 약 진술을 reported로 확정하지 말고 unclear/unknown, value=null로 보존하세요.' }] : []),
     ],
   }, { signal });
-  if (!response.output_parsed) throw new Error('extraction_refused');
+  if (!response.output_parsed) return preserveRawAnswer(turn);
   const { facts: candidates, ...parsed } = response.output_parsed;
   const result = extractionSchema.parse({ ...parsed,
     facts: candidates.map(f => ({ ...f, evidence: f.evidence.map(e => ({ quote: e.quote, turn_id: turn.id, question_id: isIndirectQuote(e.quote) ? turn.prompted_question_id : null })) })),
     scope_evidence: response.output_parsed.scope_evidence.map(e => ({ quote: e.quote, turn_id: turn.id, question_id: isIndirectQuote(e.quote) ? turn.prompted_question_id : null })),
   });
-  try { validateCandidates(result, turn); return result; }
-  catch(e) { if (!(e instanceof EvidenceError) || attempt === 1) throw e; }
+  return retainValidCandidates(result, turn);
+  } catch (e) {
+    if (e instanceof z.ZodError || (e instanceof Error && e.name === 'LengthFinishReasonError')) return preserveRawAnswer(turn);
+    throw e;
   }
-  throw new Error('extraction_invalid');
 }
 
 // 질문에 연결된 짧은 답변은 코드가 해당 항목 하나에만 적용한다.

@@ -3,6 +3,27 @@ import type { Candidate, Extraction, InterviewState, Turn } from '@/lib/contract
 export class EvidenceError extends Error {}
 const indirect = /^(아니요|아뇨|아닙니다|없어요|없습니다|네|예|응|맞아요|(?:네|예)[,\s]+맞아요|있어요|몰라요|모르겠어요|잘 모르겠어요)[.!?\s]*$/;
 export const isIndirectQuote = (quote: string) => indirect.test(quote.trim());
+// 해석 실패는 사용자 입력 실패가 아니다. 원문은 엔진의 turns에 보존한다.
+export function preserveRawAnswer(turn: Turn): Extraction {
+  const field = questionField(turn.prompted_question_id);
+  return {
+    facts: field ? [{ field_id: field, status: 'unclear', value: null, subject: 'self', temporality: 'current', evidence: [{ turn_id: turn.id, quote: turn.text, question_id: turn.prompted_question_id }] }] : [],
+    scope_signal: 'uncertain', scope_evidence: [], needs_rephrase: true,
+  };
+}
+export function retainValidCandidates(result: Extraction, turn: Turn): Extraction {
+  const facts = result.facts.filter(f => {
+    try { validateCandidate(f, turn); return true; }
+    catch (e) { if (!(e instanceof EvidenceError)) throw e; return false; }
+  });
+  let scope = { scope_signal: result.scope_signal, scope_evidence: result.scope_evidence };
+  try { validateCandidates({ ...result, facts: [] }, turn); }
+  catch (e) {
+    if (!(e instanceof EvidenceError)) throw e;
+    scope = { scope_signal: 'uncertain', scope_evidence: [] };
+  }
+  return { ...result, ...scope, facts: facts.length ? facts : preserveRawAnswer(turn).facts, needs_rephrase: result.needs_rephrase || facts.length !== result.facts.length || !facts.length };
+}
 export function validateCandidates(result: Extraction, utterance: Turn) {
   for (const f of result.facts) validateCandidate(f, utterance);
   for (const e of result.scope_evidence) {

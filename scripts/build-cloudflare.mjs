@@ -1,4 +1,4 @@
-import { constants, cpSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { constants, cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -30,4 +30,6 @@ const result = spawnSync(join(directory, 'node_modules/.bin/opennextjs-cloudflar
 if (result.error) throw result.error;
 if (result.status !== 0) process.exit(result.status ?? 1);
 cpSync(join(directory, '.open-next'), join(root, '.open-next'), { recursive: true });
-console.log(`로컬 서버와 분리한 Workers 빌드 완료: ${directory}`);
+// 사용자 승인: 성공한 격리 빌드의 임시 복사본만 정리한다. 실패본은 진단용으로 보존한다.
+rmSync(directory, { recursive: true });
+console.log('로컬 서버와 분리한 Workers 빌드 완료 · 임시 복사본 정리 완료');
