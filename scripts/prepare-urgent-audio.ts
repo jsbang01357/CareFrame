@@ -1,0 +1,11 @@
+import env from '@next/env';
+import OpenAI from 'openai';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { URGENT_TEXT } from '../data/protocol';
+env.loadEnvConfig(process.cwd());
+if (!process.env.OPENAI_API_KEY) throw new Error('API 설정 필요');
+const client=new OpenAI({maxRetries:0});
+const response=await client.audio.speech.create({model:'gpt-4o-mini-tts',voice:'marin',input:URGENT_TEXT,instructions:'한국어로 또렷하고 차분하게 읽으세요. 문구를 바꾸지 마세요.',response_format:'mp3'});
+await mkdir('public/audio',{recursive:true});await writeFile('public/audio/urgent-help.mp3',Buffer.from(await response.arrayBuffer()));
+await writeFile('public/audio/NOTICE.md',`# 고정 안내 음성\n\n생성: ${new Date().toISOString()}\n모델: gpt-4o-mini-tts · 음성: marin\n원문: data/protocol.ts의 URGENT_TEXT\n합성 음성. 임상 문구 검토 미완료. 실제 음성 내용 수동 확인 전.\n`);
+console.log('고정 안내 음성 생성 완료. 임상/음성 수동 확인 필요.');

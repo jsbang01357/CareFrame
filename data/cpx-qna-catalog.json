@@ -1,0 +1,348 @@
+{
+  "schema_version": "careframe-cpx-qna-0.1",
+  "status": "draft_reference_only",
+  "language": "ko-KR",
+  "question_policy": {
+    "ask_one_question_per_turn": true,
+    "selection_policy": "not_defined",
+    "clinical_review": "not_reviewed",
+    "active_in_current_interview": false,
+    "source_answer_scripts_present": false,
+    "app_integration": "reference_only_unwired",
+    "current_protocol_version": "upper-abdomen-demo-1",
+    "compatible_with_current_field_enum": false
+  },
+  "answer_contract": {
+    "answer_types": {
+      "free_text": "응답 내용을 요약 없이 원문 근거와 함께 수집한다.",
+      "yes_no_detail": "예/아니요 답변을 기록하며, 부연 내용이 있으면 별도로 보존한다.",
+      "number_0_to_10": {"minimum": 0, "maximum": 10, "integer_only": true},
+      "date_or_period": "정확한 날짜 또는 응답자가 말한 대략적인 시기"
+    },
+    "status_values": [
+      "reported",
+      "denied",
+      "unknown",
+      "unclear",
+      "declined",
+      "not_assessed"
+    ],
+    "value": "문진 응답에서 확인한 내용만 기록하는 문자열. 상태가 reported가 아니면 null을 사용한다.",
+    "subject_values": ["self", "other", "unclear"],
+    "temporality_values": ["current", "historical", "unclear"],
+    "evidence": {
+      "turn_id": "응답이 나온 대화 turn 식별자",
+      "quote": "응답 원문에서 사실을 뒷받침하는 짧은 인용",
+      "question_id": "이 응답을 수집한 질문 ID 또는 null"
+    },
+    "rules": [
+      "묻지 않은 항목은 not_assessed로 둔다.",
+      "모름, 불명확함, 답변 거부를 서로 다른 상태로 둔다.",
+      "부정 응답은 해당 질문에 대한 답변일 때만 denied로 기록한다.",
+      "환자 답변 예시는 원본에 없으므로 생성하지 않았다."
+    ]
+  },
+  "source_material": [
+    {
+      "source_id": "acute-abdominal-pain",
+      "file": "CPX schema/CPX_급성복통.docx",
+      "used_sections": ["병력청취"],
+      "excluded_sections": ["신체검진", "환자 교육", "진단·검사·치료 설명"]
+    },
+    {
+      "source_id": "chest-pain",
+      "file": "CPX schema/CPX_가슴통증.docx",
+      "used_sections": ["병력 청취"],
+      "excluded_sections": ["신체 검진", "환자 교육", "진단·검사·치료 설명"]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "acute-abdominal-pain",
+      "title": "급성 복통",
+      "source_id": "acute-abdominal-pain",
+      "activation_note": "원본은 사분면, 비뇨기·부인과 관련 항목을 포함하는 넓은 복통 문진이다. 현 CareFrame의 상복부 증상 데모 경로와 범위가 다르므로 별도 검토 전에는 활성화하지 않는다.",
+      "sections": [
+        {
+          "section_id": "opening",
+          "label": "시작 질문",
+          "items": [
+            {"question_id": "abd.opening.chief_complaint", "field_id": "chief_complaint", "prompt": "오늘 가장 불편하게 느끼시는 증상이 무엇인가요?", "answer_type": "free_text", "source_anchor": "병력청취 > Opening"}
+          ]
+        },
+        {
+          "section_id": "symptom_course",
+          "label": "통증의 시작과 양상",
+          "items": [
+            {"question_id": "abd.onset.time", "field_id": "onset_time", "prompt": "이 통증은 언제 시작됐나요?", "answer_type": "free_text", "source_anchor": "병력청취 > O (Onset)"},
+            {"question_id": "abd.onset.sudden", "field_id": "onset_sudden", "prompt": "통증이 갑자기 시작됐나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > O (Onset)"},
+            {"question_id": "abd.location.exact", "field_id": "pain_location", "prompt": "배의 어느 부위가 가장 아픈가요?", "answer_type": "free_text", "source_anchor": "병력청취 > L (Location)"},
+            {"question_id": "abd.location.migration", "field_id": "pain_migration", "prompt": "통증 위치가 처음과 달라진 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > L (Location)"},
+            {"question_id": "abd.location.radiation", "field_id": "pain_radiation", "prompt": "통증이 옆구리나 등처럼 다른 곳으로 퍼지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > L (Location)"},
+            {"question_id": "abd.duration.current", "field_id": "pain_current", "prompt": "지금도 통증이 계속되고 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > D (Duration)"},
+            {"question_id": "abd.duration.pattern", "field_id": "pain_pattern", "prompt": "통증이 계속되나요, 아니면 생겼다 사라지나요?", "answer_type": "free_text", "source_anchor": "병력청취 > D (Duration)"},
+            {"question_id": "abd.duration.episode", "field_id": "episode_duration", "prompt": "통증이 한 번 생기면 보통 얼마나 지속되나요?", "answer_type": "free_text", "source_anchor": "병력청취 > D (Duration)"},
+            {"question_id": "abd.course.worsening", "field_id": "course_change", "prompt": "시간이 지나면서 통증이 더 심해지고 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > Co (Course)"},
+            {"question_id": "abd.experience.previous", "field_id": "similar_episode_history", "prompt": "예전에도 비슷한 통증을 겪으신 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > Ex (Experience)"},
+            {"question_id": "abd.character", "field_id": "pain_character", "prompt": "통증이 어떤 느낌인지 설명해주실 수 있나요?", "answer_type": "free_text", "source_anchor": "병력청취 > C (Character)"},
+            {"question_id": "abd.severity", "field_id": "pain_severity", "prompt": "통증이 전혀 없는 상태를 0, 가장 심한 상태를 10이라고 하면 지금은 몇 점인가요?", "answer_type": "number_0_to_10", "source_anchor": "병력청취 > C (Character)"},
+            {"question_id": "abd.function", "field_id": "daily_activity_impact", "prompt": "이 통증 때문에 평소 일상생활에 지장이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > C (Character)"}
+          ]
+        },
+        {
+          "section_id": "associated_urgent",
+          "label": "함께 나타난 증상 · 우선 확인",
+          "items": [
+            {"question_id": "abd.associated.palpitations", "field_id": "palpitations", "prompt": "통증과 함께 가슴이 두근거린 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.dizziness", "field_id": "dizziness", "prompt": "통증이 있을 때 어지러운 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.thirst", "field_id": "thirst", "prompt": "평소보다 목이 많이 마른가요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.urine_volume", "field_id": "urine_volume_change", "prompt": "최근 소변량이 줄었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"}
+          ]
+        },
+        {
+          "section_id": "associated_general_gi",
+          "label": "함께 나타난 증상 · 전신·소화기",
+          "items": [
+            {"question_id": "abd.associated.fever", "field_id": "fever", "prompt": "열이 난 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.chills", "field_id": "chills", "prompt": "오한이 있었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.weight_change", "field_id": "weight_change", "prompt": "최근 체중에 변화가 있었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.cold_sweat", "field_id": "cold_sweat", "prompt": "몸이 차가워지면서 식은땀이 난 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.appetite", "field_id": "appetite_change", "prompt": "최근 식욕이 줄었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.nausea", "field_id": "nausea", "prompt": "속이 메스꺼운가요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.vomiting", "field_id": "vomiting", "prompt": "구토한 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.constipation", "field_id": "constipation", "prompt": "변비가 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.diarrhea", "field_id": "diarrhea", "prompt": "설사를 한 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.steatorrhea", "field_id": "steatorrhea", "prompt": "변이 기름져 보이거나 물에 잘 씻기지 않는 변화가 있었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.hematemesis", "field_id": "hematemesis", "prompt": "피나 커피 찌꺼기처럼 보이는 것을 토한 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.melena", "field_id": "melena", "prompt": "검고 끈적한 변을 본 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.hematochezia", "field_id": "hematochezia", "prompt": "대변에 선홍색 피가 섞여 나온 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.bloating", "field_id": "abdominal_bloating", "prompt": "배가 부풀어 오르는 듯한 느낌이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.mass", "field_id": "abdominal_mass_sensation", "prompt": "배에서 덩어리가 만져지거나 느껴진 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.jaundice", "field_id": "jaundice", "prompt": "눈이나 피부가 노랗게 보인 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.heartburn", "field_id": "heartburn", "prompt": "속쓰림이 함께 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"}
+          ]
+        },
+        {
+          "section_id": "associated_other_systems",
+          "label": "함께 나타난 증상 · 다른 계통",
+          "items": [
+            {"question_id": "abd.associated.chest_pain", "field_id": "chest_pain", "prompt": "가슴 통증도 함께 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.dyspnea", "field_id": "dyspnea", "prompt": "숨이 차거나 숨쉬기 어려운 증상이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.cough", "field_id": "cough", "prompt": "기침이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.sputum", "field_id": "sputum", "prompt": "가래가 나오나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.foamy_urine", "field_id": "foamy_urine", "prompt": "소변에 거품이 평소보다 많이 생기나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.frequency", "field_id": "urinary_frequency", "prompt": "소변을 자주 보게 됐나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.hematuria", "field_id": "hematuria", "prompt": "소변에 피가 섞여 나온 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.dysuria", "field_id": "dysuria", "prompt": "소변을 볼 때 통증이나 따가움이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.urine_color", "field_id": "urine_color_change", "prompt": "소변 색이 평소와 달라졌나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > A (Associated Sx.)"},
+            {"question_id": "abd.associated.vaginal_bleeding", "field_id": "vaginal_bleeding", "prompt": "질 출혈이 있었나요?", "answer_type": "yes_no_detail", "sensitivity": "sensitive", "ask_policy": "관련성이 있을 때 질문의 이유를 설명하고 먼저 허락을 구한다.", "source_anchor": "병력청취 > A (Associated Sx.)"}
+          ]
+        },
+        {
+          "section_id": "aggravating_relief",
+          "label": "악화·완화 요인",
+          "items": [
+            {"question_id": "abd.factor.worsening", "field_id": "aggravating_factors", "prompt": "어떤 상황에서 통증이 더 심해지나요?", "answer_type": "free_text", "source_anchor": "병력청취 > F (Factor)"},
+            {"question_id": "abd.factor.relief", "field_id": "relieving_factors", "prompt": "어떤 상황에서 통증이 덜해지나요?", "answer_type": "free_text", "source_anchor": "병력청취 > F (Factor)"},
+            {"question_id": "abd.factor.spicy_food", "field_id": "spicy_food_preference", "prompt": "매운 음식을 자주 드시나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > F (Factor)"},
+            {"question_id": "abd.factor.fatty_food", "field_id": "fatty_food_preference", "prompt": "기름진 음식을 자주 드시나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > F (Factor)"},
+            {"question_id": "abd.factor.meal", "field_id": "meal_relation", "prompt": "식사 전후에 통증이 달라지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > F (Factor)"},
+            {"question_id": "abd.factor.fasting", "field_id": "fasting_relation", "prompt": "공복일 때 통증이 달라지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > F (Factor)"},
+            {"question_id": "abd.factor.alcohol", "field_id": "alcohol_relation", "prompt": "음주 후 통증이 달라지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > F (Factor)"},
+            {"question_id": "abd.factor.posture", "field_id": "posture_relation", "prompt": "자세를 바꾸면 통증이 달라지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > F (Factor)"},
+            {"question_id": "abd.factor.bending", "field_id": "bending_relation", "prompt": "상체를 앞으로 숙이면 통증이 줄어드나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > F (Factor)"},
+            {"question_id": "abd.factor.bowel_urination", "field_id": "elimination_relation", "prompt": "소변이나 대변을 볼 때 통증이 달라지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > F (Factor)"},
+            {"question_id": "abd.factor.milk", "field_id": "milk_relation", "prompt": "우유를 마시면 통증이 달라지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > F (Factor)"},
+            {"question_id": "abd.factor.stress", "field_id": "stress_relation", "prompt": "스트레스를 받을 때 통증이 달라지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > F (Factor)"}
+          ]
+        },
+        {
+          "section_id": "history_medicine",
+          "label": "검진·복용약",
+          "items": [
+            {"question_id": "abd.event.health_check", "field_id": "recent_health_check", "prompt": "최근 건강검진을 받으신 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > E (Event)"},
+            {"question_id": "abd.event.endoscopy", "field_id": "endoscopy_history", "prompt": "위나 장 내시경 검사를 받으신 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > E (Event)"},
+            {"question_id": "abd.medications.current", "field_id": "current_medications", "prompt": "현재 복용하고 있는 약이 있나요?", "answer_type": "free_text", "source_anchor": "병력청취 > 약 (약물 투약력)"},
+            {"question_id": "abd.medications.antacid_analgesic", "field_id": "antacid_analgesic_use", "prompt": "이번 통증 때문에 제산제나 진통제를 복용하셨나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 약 (약물 투약력)"}
+          ]
+        },
+        {
+          "section_id": "social_family_medical",
+          "label": "생활습관·가족력·과거력",
+          "items": [
+            {"question_id": "abd.social.alcohol_frequency", "field_id": "alcohol_frequency", "prompt": "술을 얼마나 자주 드시나요?", "answer_type": "free_text", "source_anchor": "병력청취 > 사 (사회력)"},
+            {"question_id": "abd.social.alcohol_amount", "field_id": "alcohol_amount", "prompt": "술을 한 번 드실 때 어느 정도 드시나요?", "answer_type": "free_text", "source_anchor": "병력청취 > 사 (사회력)"},
+            {"question_id": "abd.social.tobacco_amount", "field_id": "tobacco_amount", "prompt": "담배를 피우신다면 하루에 얼마나 피우시나요?", "answer_type": "free_text", "source_anchor": "병력청취 > 사 (사회력)"},
+            {"question_id": "abd.social.tobacco_duration", "field_id": "tobacco_duration", "prompt": "담배를 피워오셨다면 얼마나 오래 피우셨나요?", "answer_type": "free_text", "source_anchor": "병력청취 > 사 (사회력)"},
+            {"question_id": "abd.social.coffee", "field_id": "coffee_use", "prompt": "커피를 드신다면 하루에 몇 잔 정도 드시나요?", "answer_type": "free_text", "source_anchor": "병력청취 > 사 (사회력)"},
+            {"question_id": "abd.social.stress", "field_id": "stress_level", "prompt": "최근 스트레스가 많았나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 사 (사회력)"},
+            {"question_id": "abd.social.recent_stressor", "field_id": "recent_stressor", "prompt": "최근 특별히 힘든 일이 있었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 사 (사회력)"},
+            {"question_id": "abd.social.exercise", "field_id": "exercise_habit", "prompt": "평소 운동을 하시나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 사 (사회력)"},
+            {"question_id": "abd.social.strenuous_exercise", "field_id": "recent_strenuous_exercise", "prompt": "최근 평소보다 격하게 운동하신 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 사 (사회력)"},
+            {"question_id": "abd.social.occupation", "field_id": "occupation", "prompt": "현재 어떤 일을 하고 계신가요?", "answer_type": "free_text", "source_anchor": "병력청취 > 사 (사회력)"},
+            {"question_id": "abd.family.digestive_cancer", "field_id": "family_digestive_disease_cancer", "prompt": "가족 중 소화기 질환이나 소화기 암을 진단받은 분이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 가 (가족력)"},
+            {"question_id": "abd.medical_history.hypertension", "field_id": "hypertension_history", "prompt": "고혈압을 진단받은 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 과 (과거력)"},
+            {"question_id": "abd.medical_history.diabetes", "field_id": "diabetes_history", "prompt": "당뇨병을 진단받은 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 과 (과거력)"},
+            {"question_id": "abd.medical_history.dyslipidemia", "field_id": "dyslipidemia_history", "prompt": "이상지질혈증을 진단받은 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 과 (과거력)"},
+            {"question_id": "abd.medical_history.tuberculosis", "field_id": "tuberculosis_history", "prompt": "결핵을 진단받거나 치료한 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 과 (과거력)"},
+            {"question_id": "abd.medical_history.liver_disease", "field_id": "liver_disease_history", "prompt": "간 질환을 진단받은 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 과 (과거력)"},
+            {"question_id": "abd.trauma.abdominal_injury", "field_id": "abdominal_injury_history", "prompt": "배를 다친 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 외 (외상력)"},
+            {"question_id": "abd.trauma.abdominal_surgery", "field_id": "abdominal_surgery_history", "prompt": "복부 수술을 받은 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력청취 > 외 (외상력)"}
+          ]
+        },
+        {
+          "section_id": "reproductive_history",
+          "label": "필요 시 확인하는 부인과 관련 정보",
+          "items": [
+            {"question_id": "abd.reproductive.permission", "field_id": "reproductive_history_permission", "prompt": "진료에 필요한 개인적인 질문을 드려도 괜찮을까요?", "answer_type": "yes_no_detail", "sensitivity": "sensitive", "ask_policy": "질문의 목적을 먼저 설명하고 동의를 확인한다.", "source_anchor": "병력청취 > 여 (여성력)"},
+            {"question_id": "abd.reproductive.pregnancy_history", "field_id": "pregnancy_history", "prompt": "과거 임신과 관련해 유산이나 출산을 경험하신 적이 있나요?", "answer_type": "yes_no_detail", "sensitivity": "sensitive", "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다.", "source_anchor": "병력청취 > 여 (여성력)"},
+            {"question_id": "abd.reproductive.menstrual_regular", "field_id": "menstrual_regularity", "prompt": "생리 주기는 대체로 규칙적인가요?", "answer_type": "yes_no_detail", "sensitivity": "sensitive", "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다.", "source_anchor": "병력청취 > 여 (여성력)"},
+            {"question_id": "abd.reproductive.menstrual_cycle_change", "field_id": "menstrual_cycle_change", "prompt": "최근 생리 주기에 변화가 있었나요?", "answer_type": "yes_no_detail", "sensitivity": "sensitive", "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다.", "source_anchor": "병력청취 > 여 (여성력)"},
+            {"question_id": "abd.reproductive.menstrual_flow_change", "field_id": "menstrual_flow_change", "prompt": "최근 생리 양에 변화가 있었나요?", "answer_type": "yes_no_detail", "sensitivity": "sensitive", "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다.", "source_anchor": "병력청취 > 여 (여성력)"},
+            {"question_id": "abd.reproductive.pregnancy_possibility", "field_id": "pregnancy_possibility", "prompt": "현재 임신 가능성을 확인해도 괜찮을까요?", "answer_type": "yes_no_detail", "sensitivity": "sensitive", "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다. 성관계 여부를 임의로 추론하지 않는다.", "source_anchor": "병력청취 > 여 (여성력)"}
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "chest-pain",
+      "title": "가슴 통증",
+      "source_id": "chest-pain",
+      "activation_note": "현재 CareFrame의 상복부 증상 데모에 없는 독립 주증상 경로다. 별도 문진 범위·안전 규칙·임상 검토가 끝나기 전에는 활성화하지 않는다.",
+      "sections": [
+        {
+          "section_id": "opening",
+          "label": "시작 질문",
+          "items": [
+            {"question_id": "chest.opening.chief_complaint", "field_id": "chief_complaint", "prompt": "오늘 가장 불편하게 느끼시는 증상이 무엇인가요?", "answer_type": "free_text", "source_anchor": "병력 청취 > Opening"}
+          ]
+        },
+        {
+          "section_id": "symptom_course",
+          "label": "통증의 시작과 양상",
+          "items": [
+            {"question_id": "chest.onset.time", "field_id": "onset_time", "prompt": "가슴 통증은 언제 시작됐나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > O (Onset)"},
+            {"question_id": "chest.onset.sudden", "field_id": "onset_sudden", "prompt": "통증이 갑자기 시작됐나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > O (Onset)"},
+            {"question_id": "chest.onset.context", "field_id": "onset_context", "prompt": "통증이 시작될 때 운동, 휴식, 기침 또는 식사 중 어떤 상황이었나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > O (Onset)"},
+            {"question_id": "chest.location.exact", "field_id": "pain_location", "prompt": "가슴의 어느 부위가 아픈가요?", "answer_type": "free_text", "source_anchor": "병력 청취 > L (Location)"},
+            {"question_id": "chest.location.radiation", "field_id": "pain_radiation", "prompt": "통증이 등이나 어깨처럼 다른 부위로 퍼지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > L (Location)"},
+            {"question_id": "chest.location.pressure", "field_id": "pain_tenderness", "prompt": "아픈 부위를 손으로 눌렀을 때 통증이 달라지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > L (Location)"},
+            {"question_id": "chest.duration.episode", "field_id": "episode_duration", "prompt": "통증이 한 번 생기면 보통 얼마나 지속되나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > D (Duration)"},
+            {"question_id": "chest.duration.frequency", "field_id": "episode_frequency", "prompt": "통증은 얼마나 자주 생기나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > D (Duration)"},
+            {"question_id": "chest.course.worsening", "field_id": "course_change", "prompt": "시간이 지나면서 통증이 더 심해지고 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > Co (Course)"},
+            {"question_id": "chest.experience.previous", "field_id": "similar_episode_history", "prompt": "예전에도 가슴 통증을 겪으신 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > Ex (Experience)"},
+            {"question_id": "chest.experience.care", "field_id": "previous_evaluation_treatment", "prompt": "이 통증으로 진료나 치료를 받은 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > Ex (Experience)"},
+            {"question_id": "chest.character", "field_id": "pain_character", "prompt": "통증이 어떤 느낌인지 설명해주실 수 있나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > C (Character)"},
+            {"question_id": "chest.severity", "field_id": "pain_severity", "prompt": "통증이 전혀 없는 상태를 0, 가장 심한 상태를 10이라고 하면 지금은 몇 점인가요?", "answer_type": "number_0_to_10", "source_anchor": "병력 청취 > C (Character)"},
+            {"question_id": "chest.function", "field_id": "daily_activity_impact", "prompt": "이 통증 때문에 평소 일상생활에 지장이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > C (Character)"}
+          ]
+        },
+        {
+          "section_id": "associated_urgent",
+          "label": "함께 나타난 증상 · 우선 확인",
+          "items": [
+            {"question_id": "chest.associated.dizziness", "field_id": "dizziness", "prompt": "통증이 있을 때 어지러운 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.dyspnea", "field_id": "dyspnea", "prompt": "숨이 차거나 숨쉬기 어려운 증상이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.urine_volume", "field_id": "urine_volume_change", "prompt": "최근 소변량이 줄었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.palpitations", "field_id": "palpitations", "prompt": "가슴이 두근거리는 증상이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.thirst", "field_id": "thirst", "prompt": "평소보다 목이 많이 마른가요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"}
+          ]
+        },
+        {
+          "section_id": "associated_general",
+          "label": "함께 나타난 증상 · 전신",
+          "items": [
+            {"question_id": "chest.associated.fever", "field_id": "fever", "prompt": "열이 난 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.chills", "field_id": "chills", "prompt": "오한이 있었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.weight_change", "field_id": "weight_change", "prompt": "최근 체중에 변화가 있었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.swelling", "field_id": "swelling", "prompt": "몸이나 다리가 부은 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.fatigue", "field_id": "fatigue", "prompt": "평소보다 쉽게 피로해지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"}
+          ]
+        },
+        {
+          "section_id": "associated_systems",
+          "label": "함께 나타난 증상 · 계통별",
+          "items": [
+            {"question_id": "chest.associated.cough", "field_id": "cough", "prompt": "기침이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.sputum", "field_id": "sputum", "prompt": "가래가 나오나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.hemoptysis", "field_id": "hemoptysis", "prompt": "가래에 피가 섞여 나온 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.appetite", "field_id": "appetite_change", "prompt": "최근 식욕이 줄었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.nausea", "field_id": "nausea", "prompt": "속이 메스꺼운가요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.vomiting", "field_id": "vomiting", "prompt": "구토한 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.abdominal_pain", "field_id": "abdominal_pain", "prompt": "배 아픔도 함께 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.heartburn", "field_id": "heartburn", "prompt": "속쓰림이 함께 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.anxiety", "field_id": "anxiety", "prompt": "최근 불안한 기분이 있었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.depressed_mood", "field_id": "depressed_mood", "prompt": "최근 우울한 기분이 있었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.sleep", "field_id": "sleep_change", "prompt": "최근 잠을 자는 데 어려움이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.rash", "field_id": "rash", "prompt": "피부에 발진이 생겼나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.blisters", "field_id": "blisters", "prompt": "피부에 물집이 생긴 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"},
+            {"question_id": "chest.associated.band_pain", "field_id": "band_shaped_pain", "prompt": "띠 모양으로 이어지는 통증이 있었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > A (Associated Sx.)"}
+          ]
+        },
+        {
+          "section_id": "aggravating_relief",
+          "label": "악화·완화 요인",
+          "items": [
+            {"question_id": "chest.factor.worsening", "field_id": "aggravating_factors", "prompt": "어떤 상황에서 통증이 더 심해지나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > F (Factor)"},
+            {"question_id": "chest.factor.relief", "field_id": "relieving_factors", "prompt": "어떤 상황에서 통증이 덜해지나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > F (Factor)"},
+            {"question_id": "chest.factor.night", "field_id": "nighttime_relation", "prompt": "새벽이나 밤에 통증이 더 심해지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > F (Factor)"},
+            {"question_id": "chest.factor.exercise", "field_id": "exercise_relation", "prompt": "운동할 때 통증이 더 심해지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > F (Factor)"},
+            {"question_id": "chest.factor.cough", "field_id": "cough_relation", "prompt": "기침할 때 통증이 달라지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > F (Factor)"},
+            {"question_id": "chest.factor.inspiration", "field_id": "breathing_relation", "prompt": "숨을 깊이 들이쉴 때 통증이 달라지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > F (Factor)"},
+            {"question_id": "chest.factor.meal", "field_id": "meal_relation", "prompt": "식사 후 통증이 달라지나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > F (Factor)"},
+            {"question_id": "chest.factor.bending", "field_id": "bending_relation", "prompt": "앞으로 몸을 숙이면 통증이 줄어드나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > F (Factor)"},
+            {"question_id": "chest.factor.rest", "field_id": "rest_relation", "prompt": "쉬면 통증이 줄어드나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > F (Factor)"},
+            {"question_id": "chest.factor.spicy_food", "field_id": "spicy_food_preference", "prompt": "매운 음식을 자주 드시나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > F (Factor)"},
+            {"question_id": "chest.factor.fatty_food", "field_id": "fatty_food_preference", "prompt": "기름진 음식을 자주 드시나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > F (Factor)"}
+          ]
+        },
+        {
+          "section_id": "history_medicine",
+          "label": "검진·입원·복용약",
+          "items": [
+            {"question_id": "chest.event.health_check", "field_id": "recent_health_check", "prompt": "건강검진을 받으신 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > E (Event)"},
+            {"question_id": "chest.event.health_check_result", "field_id": "health_check_result", "prompt": "최근 건강검진에서 들으신 결과가 있나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > E (Event)"},
+            {"question_id": "chest.trauma.surgery", "field_id": "recent_surgery", "prompt": "최근 수술을 받으신 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > 외 (외상력)"},
+            {"question_id": "chest.trauma.admission", "field_id": "recent_admission", "prompt": "최근 입원하신 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > 외 (외상력)"},
+            {"question_id": "chest.trauma.immobility", "field_id": "prolonged_immobility", "prompt": "최근 오랫동안 침대에 누워 지내신 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > 외 (외상력)"},
+            {"question_id": "chest.trauma.chest_injury", "field_id": "chest_injury", "prompt": "최근 가슴을 다친 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > 외 (외상력)"},
+            {"question_id": "chest.medical_history.general", "field_id": "medical_history", "prompt": "이전에 진단받은 질환이 있나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > 과 (과거력)"},
+            {"question_id": "chest.medical_history.hypertension", "field_id": "hypertension_history", "prompt": "고혈압을 진단받은 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > 과 (과거력)"},
+            {"question_id": "chest.medical_history.diabetes", "field_id": "diabetes_history", "prompt": "당뇨병을 진단받은 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > 과 (과거력)"},
+            {"question_id": "chest.medical_history.dyslipidemia", "field_id": "dyslipidemia_history", "prompt": "이상지질혈증을 진단받은 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > 과 (과거력)"},
+            {"question_id": "chest.medical_history.liver_tb", "field_id": "liver_disease_tb_history", "prompt": "만성 간 질환이나 결핵을 앓은 적이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > 과 (과거력)"},
+            {"question_id": "chest.medications.current", "field_id": "current_medications", "prompt": "현재 복용하는 약이 있나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > 약 (약물 투약력)"}
+          ]
+        },
+        {
+          "section_id": "social_family",
+          "label": "생활습관·가족력",
+          "items": [
+            {"question_id": "chest.social.alcohol_frequency", "field_id": "alcohol_frequency", "prompt": "술을 얼마나 자주 드시나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > 사 (사회력)"},
+            {"question_id": "chest.social.alcohol_amount", "field_id": "alcohol_amount", "prompt": "술을 한 번 드실 때 어느 정도 드시나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > 사 (사회력)"},
+            {"question_id": "chest.social.tobacco_amount", "field_id": "tobacco_amount", "prompt": "담배를 피우신다면 하루에 얼마나 피우시나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > 사 (사회력)"},
+            {"question_id": "chest.social.tobacco_duration", "field_id": "tobacco_duration", "prompt": "담배를 피워오셨다면 얼마나 오래 피우셨나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > 사 (사회력)"},
+            {"question_id": "chest.social.coffee", "field_id": "coffee_use", "prompt": "커피를 드신다면 하루에 몇 잔 정도 드시나요?", "answer_type": "free_text", "source_anchor": "병력 청취 > 사 (사회력)"},
+            {"question_id": "chest.social.stress", "field_id": "stress_level", "prompt": "최근 스트레스가 많았나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > 사 (사회력)"},
+            {"question_id": "chest.social.recent_stressor", "field_id": "recent_stressor", "prompt": "최근 특별히 힘든 일이 있었나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > 사 (사회력)"},
+            {"question_id": "chest.social.exercise", "field_id": "exercise_habit", "prompt": "평소 운동을 하시나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > 사 (사회력)"},
+            {"question_id": "chest.social.occupation", "field_id": "occupation", "prompt": "현재 어떤 일을 하고 계신가요?", "answer_type": "free_text", "source_anchor": "병력 청취 > 사 (사회력)"},
+            {"question_id": "chest.family.heart_disease", "field_id": "family_heart_disease", "prompt": "가족 중 심장 질환을 진단받은 분이 있나요?", "answer_type": "yes_no_detail", "source_anchor": "병력 청취 > 가 (가족력)"}
+          ]
+        },
+        {
+          "section_id": "reproductive_history",
+          "label": "필요 시 확인하는 생리·임신 관련 정보",
+          "items": [
+            {"question_id": "chest.reproductive.permission", "field_id": "reproductive_history_permission", "prompt": "진료에 필요한 개인적인 질문을 드려도 괜찮을까요?", "answer_type": "yes_no_detail", "sensitivity": "sensitive", "ask_policy": "질문의 목적을 먼저 설명하고 동의를 확인한다.", "source_anchor": "병력 청취 > 여 (여성력)"},
+            {"question_id": "chest.reproductive.regularity", "field_id": "menstrual_regularity", "prompt": "생리는 대체로 규칙적인가요?", "answer_type": "yes_no_detail", "sensitivity": "sensitive", "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다.", "source_anchor": "병력 청취 > 여 (여성력)"},
+            {"question_id": "chest.reproductive.last_menstrual_period", "field_id": "last_menstrual_period", "prompt": "마지막 생리는 언제였나요?", "answer_type": "date_or_period", "sensitivity": "sensitive", "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다.", "source_anchor": "병력 청취 > 여 (여성력)"},
+            {"question_id": "chest.reproductive.menstrual_flow_change", "field_id": "menstrual_flow_change", "prompt": "최근 생리 양에 변화가 있었나요?", "answer_type": "yes_no_detail", "sensitivity": "sensitive", "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다.", "source_anchor": "병력 청취 > 여 (여성력)"},
+            {"question_id": "chest.reproductive.menstrual_cycle_change", "field_id": "menstrual_cycle_change", "prompt": "최근 생리 주기에 변화가 있었나요?", "answer_type": "yes_no_detail", "sensitivity": "sensitive", "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다.", "source_anchor": "병력 청취 > 여 (여성력)"},
+            {"question_id": "chest.reproductive.pregnancy_possibility", "field_id": "pregnancy_possibility", "prompt": "현재 임신 가능성을 확인해도 괜찮을까요?", "answer_type": "yes_no_detail", "sensitivity": "sensitive", "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다. 성관계 여부를 임의로 추론하지 않는다.", "source_anchor": "병력 청취 > 여 (여성력)"}
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "careframe-younghee",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build --webpack",
+    "start": "next start --hostname 127.0.0.1",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "evaluate:live": "tsx scripts/evaluate-live.ts",
+    "prepare:audio": "tsx scripts/prepare-urgent-audio.ts"
+  },
+  "dependencies": {
+    "@openai/agents": "0.20.0",
+    "next": "16.4.0",
+    "openai": "7.30.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
+  },
+  "type": "module"
+}
