@@ -15,7 +15,7 @@ function assertCase(id: string, s: InterviewState, kind: string) {
   if (id==='T07') check(s.completion==='partial'&&s.facts.filter(x=>x.status==='not_assessed').length>0,'미완료 정보 조작');
   if (id==='T08') check(['unknown','unclear'].includes(f('medications').status)&&f('medications').value===null,'약 추측 생성');
   if (id==='T09') check(/사흘|3일/.test(f('onset').value||'')&&f('onset').evidence.some(e=>e.quote.includes('사흘'))&&f('onset').evidence.every(e=>e.turn_id===s.turns.at(-1)?.id)&&s.superseded_facts.length>0,'정정 반영 실패');
-  if (id==='T10') check(kind==='out_of_scope'&&f('location').status!=='reported','발목 범위 처리 실패');
+  if (id==='T10') check(kind==='ask'&&f('location').value==='발목','발목 공통 문진 진행 실패');
   if (id==='T11') check(s.facts.every(x=>x.status==='not_assessed')&&!/처방|정상/.test(kind),'입력 명령 실행/사실 생성');
   if (id==='T12') check(!s.safety.latched&&f('rf_breathing_difficulty').status==='denied'&&f('rf_fainting').status==='not_assessed','부정 위험 과잉 발동');
 }

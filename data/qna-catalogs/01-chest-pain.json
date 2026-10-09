@@ -1868,5 +1868,14 @@
       "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다. 성관계 여부를 임의로 추론하지 않는다.",
       "draft_basis": "paraphrased_from_local_cpx_document"
     }
-  ]
+  ],
+  "question_policy": {
+    "ask_one_question_per_turn": true,
+    "selection_policy": "not_defined",
+    "clinical_review": "not_reviewed",
+    "active_in_current_interview": false,
+    "source_answer_scripts_present": false,
+    "app_integration": "reference_only_unwired",
+    "compatible_with_current_field_enum": false
+  }
 }

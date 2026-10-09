@@ -9,7 +9,7 @@ const statusText: Record<ClinicalFact['status'], string> = {
 };
 const stopLabels: Record<string, string> = {
   configured_risk: '설정된 위험 신호로 중단', unsupported: '지원 범위 밖', user_end: '사용자가 종료함',
-  turn_limit: '12턴 상한', questions_exhausted: '준비된 질문 종료', scope_uncertain: '지원 범위 불명확',
+  turn_limit: '답변 상한', questions_exhausted: '준비된 질문 종료', scope_uncertain: '지원 범위 불명확',
   session_limit: '세션 시간 상한', input_error: '입력 처리 오류',
 };
 
@@ -30,15 +30,16 @@ export function ReportView({ state, fixture, onEvidence, copyStatus }: { state: 
   return <article className="report clinical-note">
     <header className="report-heading">
       <div><span className="eyebrow">PRE-VISIT CLINICAL NOTE · S — SUBJECTIVE</span><h2>{r.title}</h2></div>
-      <span className="note-badge">{fixture ? '가상 증례' : 'Patient-reported'}</span>
+      <span className="note-badge">가상 증례</span>
     </header>
-    <p className="report-disclosure">AI 사전문진 기록 · 의료진 확인 전. 환자가 보고한 내용을 구조화했으며 확정 의무기록이 아닙니다.</p>
+    <p className="report-disclosure">가상 증례용 AI 사전문진 기록 · 의료진 확인 전. 환자가 보고한 내용을 구조화했으며 확정 의무기록이 아닙니다.</p>
     {fixture && <p className="fixture-banner">개발용 고정 사실 후보 · 실제 음성/추출 API 결과가 아닙니다.</p>}
     <div className="clinical-meta">
-      <span>환자: 연령 {r.demographics.age ?? '미확인'} · 성별 {r.demographics.sex ?? '미확인'}</span>
+      <span>환자: 연령 {r.demographics.age ?? '미확인'} · 성별 {r.demographics.sex ?? '미확인'} (가상 입력)</span>
       <span>문진 방식: AI {r.interviewMode}</span>
       <span>기록 버전 {r.revision} · {r.confirmed ? '사용자 확인' : '사용자 확인 전'}</span>
     </div>
+    {r.selectedTopic && <p className="selected-topic-note"><strong>환자 선택 주제:</strong> {r.selectedTopic.label} · 문진 방향을 위한 선택이며, 실제 증상은 아래 환자 발언으로 확인합니다.</p>}
 
     <section className="clinical-section cc-section">
       <h3>CHIEF COMPLAINT (CC) <small>주호소</small></h3>

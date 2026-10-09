@@ -1,0 +1,2037 @@
+{
+  "catalog_schema_version": "careframe-qna-catalog/0.2.0",
+  "case": {
+    "number": 21,
+    "id": "cpx-21-acute-abdominal-pain",
+    "title": "복통",
+    "category": "symptom",
+    "draft_status": "source_derived_draft",
+    "clinical_review": "not_reviewed",
+    "activation_status": "inactive",
+    "field_mapping_status": "not_mapped_to_current_app",
+    "question_count": 85,
+    "source_derived_question_count": 85
+  },
+  "source_material": [
+    {
+      "type": "local_cpx_document",
+      "source_id": "acute-abdominal-pain",
+      "file": "CPX schema/CPX_급성복통.docx",
+      "used_sections": [
+        "병력청취"
+      ],
+      "content_note": "원문 병력청취 항목에서 질문을 CareFrame 초안 형식으로 정리했다. 임상 검토 전."
+    }
+  ],
+  "answer_contract_ref": "answer-contract.json",
+  "questionnaire": {
+    "resourceType": "Questionnaire",
+    "id": "cpx-21-acute-abdominal-pain",
+    "url": "urn:careframe:questionnaire:cpx-21-acute-abdominal-pain",
+    "version": "0.1.0",
+    "name": "CPX21Cpx21AcuteAbdominalPain",
+    "title": "복통",
+    "status": "draft",
+    "experimental": true,
+    "language": "ko-KR",
+    "subjectType": [
+      "Patient"
+    ],
+    "description": "CPX 복통 원문 기반 문진 질문 초안. 임상 검토 전이며 현재 실행 문진에는 연결되지 않았다.",
+    "item": [
+      {
+        "linkId": "group-opening",
+        "text": "시작 질문",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-001",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "chief_complaint"
+              }
+            ],
+            "text": "오늘 가장 불편하게 느끼시는 증상이 무엇인가요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-symptom_course",
+        "text": "통증의 시작과 양상",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-002",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "onset_time"
+              }
+            ],
+            "text": "이 통증은 언제 시작됐나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-003",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "onset_sudden"
+              }
+            ],
+            "text": "통증이 갑자기 시작됐나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-004",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "pain_location"
+              }
+            ],
+            "text": "배의 어느 부위가 가장 아픈가요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-005",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "pain_migration"
+              }
+            ],
+            "text": "통증 위치가 처음과 달라진 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-006",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "pain_radiation"
+              }
+            ],
+            "text": "통증이 옆구리나 등처럼 다른 곳으로 퍼지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-007",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "pain_current"
+              }
+            ],
+            "text": "지금도 통증이 계속되고 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-008",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "pain_pattern"
+              }
+            ],
+            "text": "통증이 계속되나요, 아니면 생겼다 사라지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-009",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "episode_duration"
+              }
+            ],
+            "text": "통증이 한 번 생기면 보통 얼마나 지속되나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-010",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "course_change"
+              }
+            ],
+            "text": "시간이 지나면서 통증이 더 심해지고 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-011",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "similar_episode_history"
+              }
+            ],
+            "text": "예전에도 비슷한 통증을 겪으신 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-012",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "pain_character"
+              }
+            ],
+            "text": "통증이 어떤 느낌인지 설명해주실 수 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-013",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "pain_severity"
+              }
+            ],
+            "text": "통증이 전혀 없는 상태를 0, 가장 심한 상태를 10이라고 하면 지금은 몇 점인가요?",
+            "type": "integer",
+            "required": false,
+            "repeats": false,
+            "answerOption": [
+              {
+                "valueInteger": 0
+              },
+              {
+                "valueInteger": 1
+              },
+              {
+                "valueInteger": 2
+              },
+              {
+                "valueInteger": 3
+              },
+              {
+                "valueInteger": 4
+              },
+              {
+                "valueInteger": 5
+              },
+              {
+                "valueInteger": 6
+              },
+              {
+                "valueInteger": 7
+              },
+              {
+                "valueInteger": 8
+              },
+              {
+                "valueInteger": 9
+              },
+              {
+                "valueInteger": 10
+              }
+            ]
+          },
+          {
+            "linkId": "q-014",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "daily_activity_impact"
+              }
+            ],
+            "text": "이 통증 때문에 평소 일상생활에 지장이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-associated_urgent",
+        "text": "함께 나타난 증상 · 우선 확인",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-015",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "palpitations"
+              }
+            ],
+            "text": "통증과 함께 가슴이 두근거린 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-016",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "dizziness"
+              }
+            ],
+            "text": "통증이 있을 때 어지러운 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-017",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "thirst"
+              }
+            ],
+            "text": "평소보다 목이 많이 마른가요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-018",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "urine_volume_change"
+              }
+            ],
+            "text": "최근 소변량이 줄었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-associated_general_gi",
+        "text": "함께 나타난 증상 · 전신·소화기",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-019",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "fever"
+              }
+            ],
+            "text": "열이 난 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-020",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "chills"
+              }
+            ],
+            "text": "오한이 있었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-021",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "weight_change"
+              }
+            ],
+            "text": "최근 체중에 변화가 있었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-022",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "cold_sweat"
+              }
+            ],
+            "text": "몸이 차가워지면서 식은땀이 난 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-023",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "appetite_change"
+              }
+            ],
+            "text": "최근 식욕이 줄었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-024",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "nausea"
+              }
+            ],
+            "text": "속이 메스꺼운가요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-025",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "vomiting"
+              }
+            ],
+            "text": "구토한 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-026",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "constipation"
+              }
+            ],
+            "text": "변비가 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-027",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "diarrhea"
+              }
+            ],
+            "text": "설사를 한 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-028",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "steatorrhea"
+              }
+            ],
+            "text": "변이 기름져 보이거나 물에 잘 씻기지 않는 변화가 있었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-029",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "hematemesis"
+              }
+            ],
+            "text": "피나 커피 찌꺼기처럼 보이는 것을 토한 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-030",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "melena"
+              }
+            ],
+            "text": "검고 끈적한 변을 본 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-031",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "hematochezia"
+              }
+            ],
+            "text": "대변에 선홍색 피가 섞여 나온 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-032",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "abdominal_bloating"
+              }
+            ],
+            "text": "배가 부풀어 오르는 듯한 느낌이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-033",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "abdominal_mass_sensation"
+              }
+            ],
+            "text": "배에서 덩어리가 만져지거나 느껴진 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-034",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "jaundice"
+              }
+            ],
+            "text": "눈이나 피부가 노랗게 보인 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-035",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "heartburn"
+              }
+            ],
+            "text": "속쓰림이 함께 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-associated_other_systems",
+        "text": "함께 나타난 증상 · 다른 계통",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-036",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "chest_pain"
+              }
+            ],
+            "text": "가슴 통증도 함께 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-037",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "dyspnea"
+              }
+            ],
+            "text": "숨이 차거나 숨쉬기 어려운 증상이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-038",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "cough"
+              }
+            ],
+            "text": "기침이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-039",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "sputum"
+              }
+            ],
+            "text": "가래가 나오나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-040",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "foamy_urine"
+              }
+            ],
+            "text": "소변에 거품이 평소보다 많이 생기나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-041",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "urinary_frequency"
+              }
+            ],
+            "text": "소변을 자주 보게 됐나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-042",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "hematuria"
+              }
+            ],
+            "text": "소변에 피가 섞여 나온 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-043",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "dysuria"
+              }
+            ],
+            "text": "소변을 볼 때 통증이나 따가움이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-044",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "urine_color_change"
+              }
+            ],
+            "text": "소변 색이 평소와 달라졌나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-045",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "vaginal_bleeding"
+              }
+            ],
+            "text": "질 출혈이 있었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-aggravating_relief",
+        "text": "악화·완화 요인",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-046",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "aggravating_factors"
+              }
+            ],
+            "text": "어떤 상황에서 통증이 더 심해지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-047",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "relieving_factors"
+              }
+            ],
+            "text": "어떤 상황에서 통증이 덜해지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-048",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "spicy_food_preference"
+              }
+            ],
+            "text": "매운 음식을 자주 드시나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-049",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "fatty_food_preference"
+              }
+            ],
+            "text": "기름진 음식을 자주 드시나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-050",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "meal_relation"
+              }
+            ],
+            "text": "식사 전후에 통증이 달라지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-051",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "fasting_relation"
+              }
+            ],
+            "text": "공복일 때 통증이 달라지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-052",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "alcohol_relation"
+              }
+            ],
+            "text": "음주 후 통증이 달라지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-053",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "posture_relation"
+              }
+            ],
+            "text": "자세를 바꾸면 통증이 달라지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-054",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "bending_relation"
+              }
+            ],
+            "text": "상체를 앞으로 숙이면 통증이 줄어드나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-055",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "elimination_relation"
+              }
+            ],
+            "text": "소변이나 대변을 볼 때 통증이 달라지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-056",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "milk_relation"
+              }
+            ],
+            "text": "우유를 마시면 통증이 달라지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-057",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "stress_relation"
+              }
+            ],
+            "text": "스트레스를 받을 때 통증이 달라지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-history_medicine",
+        "text": "검진·복용약",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-058",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "recent_health_check"
+              }
+            ],
+            "text": "최근 건강검진을 받으신 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-059",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "endoscopy_history"
+              }
+            ],
+            "text": "위나 장 내시경 검사를 받으신 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-060",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "current_medications"
+              }
+            ],
+            "text": "현재 복용하고 있는 약이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-061",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "antacid_analgesic_use"
+              }
+            ],
+            "text": "이번 통증 때문에 제산제나 진통제를 복용하셨나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-social_family_medical",
+        "text": "생활습관·가족력·과거력",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-062",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "alcohol_frequency"
+              }
+            ],
+            "text": "술을 얼마나 자주 드시나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-063",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "alcohol_amount"
+              }
+            ],
+            "text": "술을 한 번 드실 때 어느 정도 드시나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-064",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "tobacco_amount"
+              }
+            ],
+            "text": "담배를 피우신다면 하루에 얼마나 피우시나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-065",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "tobacco_duration"
+              }
+            ],
+            "text": "담배를 피워오셨다면 얼마나 오래 피우셨나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-066",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "coffee_use"
+              }
+            ],
+            "text": "커피를 드신다면 하루에 몇 잔 정도 드시나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-067",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "stress_level"
+              }
+            ],
+            "text": "최근 스트레스가 많았나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-068",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "recent_stressor"
+              }
+            ],
+            "text": "최근 특별히 힘든 일이 있었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-069",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "exercise_habit"
+              }
+            ],
+            "text": "평소 운동을 하시나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-070",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "recent_strenuous_exercise"
+              }
+            ],
+            "text": "최근 평소보다 격하게 운동하신 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-071",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "occupation"
+              }
+            ],
+            "text": "현재 어떤 일을 하고 계신가요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-072",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "family_digestive_disease_cancer"
+              }
+            ],
+            "text": "가족 중 소화기 질환이나 소화기 암을 진단받은 분이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-073",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "hypertension_history"
+              }
+            ],
+            "text": "고혈압을 진단받은 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-074",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "diabetes_history"
+              }
+            ],
+            "text": "당뇨병을 진단받은 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-075",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "dyslipidemia_history"
+              }
+            ],
+            "text": "이상지질혈증을 진단받은 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-076",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "tuberculosis_history"
+              }
+            ],
+            "text": "결핵을 진단받거나 치료한 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-077",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "liver_disease_history"
+              }
+            ],
+            "text": "간 질환을 진단받은 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-078",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "abdominal_injury_history"
+              }
+            ],
+            "text": "배를 다친 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-079",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "abdominal_surgery_history"
+              }
+            ],
+            "text": "복부 수술을 받은 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-reproductive_history",
+        "text": "필요 시 확인하는 부인과 관련 정보",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-080",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "reproductive_history_permission"
+              }
+            ],
+            "text": "진료에 필요한 개인적인 질문을 드려도 괜찮을까요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-081",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "pregnancy_history"
+              }
+            ],
+            "text": "과거 임신과 관련해 유산이나 출산을 경험하신 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-082",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "menstrual_regularity"
+              }
+            ],
+            "text": "생리 주기는 대체로 규칙적인가요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-083",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "menstrual_cycle_change"
+              }
+            ],
+            "text": "최근 생리 주기에 변화가 있었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-084",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "menstrual_flow_change"
+              }
+            ],
+            "text": "최근 생리 양에 변화가 있었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-085",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "pregnancy_possibility"
+              }
+            ],
+            "text": "현재 임신 가능성을 확인해도 괜찮을까요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      }
+    ]
+  },
+  "item_annotations": [
+    {
+      "link_id": "q-001",
+      "field_id": "chief_complaint",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > Opening",
+      "source_question_id": "abd.opening.chief_complaint",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-002",
+      "field_id": "onset_time",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > O (Onset)",
+      "source_question_id": "abd.onset.time",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-003",
+      "field_id": "onset_sudden",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > O (Onset)",
+      "source_question_id": "abd.onset.sudden",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-004",
+      "field_id": "pain_location",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > L (Location)",
+      "source_question_id": "abd.location.exact",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-005",
+      "field_id": "pain_migration",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > L (Location)",
+      "source_question_id": "abd.location.migration",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-006",
+      "field_id": "pain_radiation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > L (Location)",
+      "source_question_id": "abd.location.radiation",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-007",
+      "field_id": "pain_current",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > D (Duration)",
+      "source_question_id": "abd.duration.current",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-008",
+      "field_id": "pain_pattern",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > D (Duration)",
+      "source_question_id": "abd.duration.pattern",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-009",
+      "field_id": "episode_duration",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > D (Duration)",
+      "source_question_id": "abd.duration.episode",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-010",
+      "field_id": "course_change",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > Co (Course)",
+      "source_question_id": "abd.course.worsening",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-011",
+      "field_id": "similar_episode_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > Ex (Experience)",
+      "source_question_id": "abd.experience.previous",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-012",
+      "field_id": "pain_character",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > C (Character)",
+      "source_question_id": "abd.character",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-013",
+      "field_id": "pain_severity",
+      "answer_type": "number_0_to_10",
+      "source_anchor": "병력청취 > C (Character)",
+      "source_question_id": "abd.severity",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-014",
+      "field_id": "daily_activity_impact",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > C (Character)",
+      "source_question_id": "abd.function",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-015",
+      "field_id": "palpitations",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.palpitations",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-016",
+      "field_id": "dizziness",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.dizziness",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-017",
+      "field_id": "thirst",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.thirst",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-018",
+      "field_id": "urine_volume_change",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.urine_volume",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-019",
+      "field_id": "fever",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.fever",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-020",
+      "field_id": "chills",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.chills",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-021",
+      "field_id": "weight_change",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.weight_change",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-022",
+      "field_id": "cold_sweat",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.cold_sweat",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-023",
+      "field_id": "appetite_change",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.appetite",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-024",
+      "field_id": "nausea",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.nausea",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-025",
+      "field_id": "vomiting",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.vomiting",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-026",
+      "field_id": "constipation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.constipation",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-027",
+      "field_id": "diarrhea",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.diarrhea",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-028",
+      "field_id": "steatorrhea",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.steatorrhea",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-029",
+      "field_id": "hematemesis",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.hematemesis",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-030",
+      "field_id": "melena",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.melena",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-031",
+      "field_id": "hematochezia",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.hematochezia",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-032",
+      "field_id": "abdominal_bloating",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.bloating",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-033",
+      "field_id": "abdominal_mass_sensation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.mass",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-034",
+      "field_id": "jaundice",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.jaundice",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-035",
+      "field_id": "heartburn",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.heartburn",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-036",
+      "field_id": "chest_pain",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.chest_pain",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-037",
+      "field_id": "dyspnea",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.dyspnea",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-038",
+      "field_id": "cough",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.cough",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-039",
+      "field_id": "sputum",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.sputum",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-040",
+      "field_id": "foamy_urine",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.foamy_urine",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-041",
+      "field_id": "urinary_frequency",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.frequency",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-042",
+      "field_id": "hematuria",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.hematuria",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-043",
+      "field_id": "dysuria",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.dysuria",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-044",
+      "field_id": "urine_color_change",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.urine_color",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-045",
+      "field_id": "vaginal_bleeding",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "abd.associated.vaginal_bleeding",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document",
+      "sensitivity": "sensitive",
+      "ask_policy": "관련성이 있을 때 질문의 이유를 설명하고 먼저 허락을 구한다."
+    },
+    {
+      "link_id": "q-046",
+      "field_id": "aggravating_factors",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "abd.factor.worsening",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-047",
+      "field_id": "relieving_factors",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "abd.factor.relief",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-048",
+      "field_id": "spicy_food_preference",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "abd.factor.spicy_food",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-049",
+      "field_id": "fatty_food_preference",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "abd.factor.fatty_food",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-050",
+      "field_id": "meal_relation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "abd.factor.meal",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-051",
+      "field_id": "fasting_relation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "abd.factor.fasting",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-052",
+      "field_id": "alcohol_relation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "abd.factor.alcohol",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-053",
+      "field_id": "posture_relation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "abd.factor.posture",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-054",
+      "field_id": "bending_relation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "abd.factor.bending",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-055",
+      "field_id": "elimination_relation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "abd.factor.bowel_urination",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-056",
+      "field_id": "milk_relation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "abd.factor.milk",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-057",
+      "field_id": "stress_relation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "abd.factor.stress",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-058",
+      "field_id": "recent_health_check",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > E (Event)",
+      "source_question_id": "abd.event.health_check",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-059",
+      "field_id": "endoscopy_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > E (Event)",
+      "source_question_id": "abd.event.endoscopy",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-060",
+      "field_id": "current_medications",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > 약 (약물 투약력)",
+      "source_question_id": "abd.medications.current",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-061",
+      "field_id": "antacid_analgesic_use",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 약 (약물 투약력)",
+      "source_question_id": "abd.medications.antacid_analgesic",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-062",
+      "field_id": "alcohol_frequency",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "abd.social.alcohol_frequency",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-063",
+      "field_id": "alcohol_amount",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "abd.social.alcohol_amount",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-064",
+      "field_id": "tobacco_amount",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "abd.social.tobacco_amount",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-065",
+      "field_id": "tobacco_duration",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "abd.social.tobacco_duration",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-066",
+      "field_id": "coffee_use",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "abd.social.coffee",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-067",
+      "field_id": "stress_level",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "abd.social.stress",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-068",
+      "field_id": "recent_stressor",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "abd.social.recent_stressor",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-069",
+      "field_id": "exercise_habit",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "abd.social.exercise",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-070",
+      "field_id": "recent_strenuous_exercise",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "abd.social.strenuous_exercise",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-071",
+      "field_id": "occupation",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "abd.social.occupation",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-072",
+      "field_id": "family_digestive_disease_cancer",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 가 (가족력)",
+      "source_question_id": "abd.family.digestive_cancer",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-073",
+      "field_id": "hypertension_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 과 (과거력)",
+      "source_question_id": "abd.medical_history.hypertension",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-074",
+      "field_id": "diabetes_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 과 (과거력)",
+      "source_question_id": "abd.medical_history.diabetes",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-075",
+      "field_id": "dyslipidemia_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 과 (과거력)",
+      "source_question_id": "abd.medical_history.dyslipidemia",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-076",
+      "field_id": "tuberculosis_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 과 (과거력)",
+      "source_question_id": "abd.medical_history.tuberculosis",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-077",
+      "field_id": "liver_disease_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 과 (과거력)",
+      "source_question_id": "abd.medical_history.liver_disease",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-078",
+      "field_id": "abdominal_injury_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 외 (외상력)",
+      "source_question_id": "abd.trauma.abdominal_injury",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-079",
+      "field_id": "abdominal_surgery_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 외 (외상력)",
+      "source_question_id": "abd.trauma.abdominal_surgery",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-080",
+      "field_id": "reproductive_history_permission",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 여 (여성력)",
+      "source_question_id": "abd.reproductive.permission",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document",
+      "sensitivity": "sensitive",
+      "ask_policy": "질문의 목적을 먼저 설명하고 동의를 확인한다."
+    },
+    {
+      "link_id": "q-081",
+      "field_id": "pregnancy_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 여 (여성력)",
+      "source_question_id": "abd.reproductive.pregnancy_history",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document",
+      "sensitivity": "sensitive",
+      "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다."
+    },
+    {
+      "link_id": "q-082",
+      "field_id": "menstrual_regularity",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 여 (여성력)",
+      "source_question_id": "abd.reproductive.menstrual_regular",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document",
+      "sensitivity": "sensitive",
+      "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다."
+    },
+    {
+      "link_id": "q-083",
+      "field_id": "menstrual_cycle_change",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 여 (여성력)",
+      "source_question_id": "abd.reproductive.menstrual_cycle_change",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document",
+      "sensitivity": "sensitive",
+      "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다."
+    },
+    {
+      "link_id": "q-084",
+      "field_id": "menstrual_flow_change",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 여 (여성력)",
+      "source_question_id": "abd.reproductive.menstrual_flow_change",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document",
+      "sensitivity": "sensitive",
+      "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다."
+    },
+    {
+      "link_id": "q-085",
+      "field_id": "pregnancy_possibility",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 여 (여성력)",
+      "source_question_id": "abd.reproductive.pregnancy_possibility",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document",
+      "sensitivity": "sensitive",
+      "ask_policy": "관련성이 있고 동의를 받은 경우에만 질문한다. 성관계 여부를 임의로 추론하지 않는다."
+    }
+  ],
+  "question_policy": {
+    "ask_one_question_per_turn": true,
+    "selection_policy": "not_defined",
+    "clinical_review": "not_reviewed",
+    "active_in_current_interview": false,
+    "source_answer_scripts_present": false,
+    "app_integration": "reference_only_unwired",
+    "compatible_with_current_field_enum": false
+  }
+}

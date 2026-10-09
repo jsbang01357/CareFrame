@@ -1,5 +1,6 @@
 import { RealtimeAgent, RealtimeSession, OpenAIRealtimeWebRTC } from '@openai/agents/realtime';
 import { TranscriptQueue, type QueuedTranscript } from './turn-queue';
+import { personaNames, type PersonaId } from '@/lib/persona';
 export type VoiceStatus = 'disconnected' | 'connecting' | 'listening' | 'processing' | 'speaking' | 'paused';
 interface Callbacks {
   transcript: (turn: QueuedTranscript) => Promise<boolean>;
@@ -26,10 +27,11 @@ export class VoiceController {
   private missingTimer?: ReturnType<typeof setTimeout>;
   private generation = 0;
   private validResponseId: string | null = null;
-  constructor(private cb: Callbacks) {}
+  private finishing = false;
+  constructor(private cb: Callbacks, private personaId: PersonaId = 'younghee') {}
   async connect() {
     this.cb.status('connecting');
-    const response = await fetch('/api/realtime-token', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ persona_id: 'younghee', demo_only: true }), signal: AbortSignal.timeout(15000) });
+    const response = await fetch('/api/realtime-token', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ persona_id: this.personaId, demo_only: true }), signal: AbortSignal.timeout(15000) });
     const token = await response.json();
     if (!response.ok) throw new Error(token.error?.message || '음성 연결에 실패했습니다.');
     if (this.closed) return;
@@ -37,7 +39,7 @@ export class VoiceController {
     if (this.closed) { this.stream.getTracks().forEach(t => t.stop()); return; }
     this.audio = document.createElement('audio'); this.audio.autoplay = true;
     const transport = new OpenAIRealtimeWebRTC({ mediaStream: this.stream, audioElement: this.audio });
-    const agent = new RealtimeAgent({ name: '영희', instructions: '서버가 준 승인 문장만 한국어로 그대로 읽습니다. 진단, 처방, 안심 판단, 추가 질문을 하지 않습니다. 사용자의 말에 자발적으로 응답하지 않습니다.' });
+    const agent = new RealtimeAgent({ name: personaNames[this.personaId], instructions: '서버가 준 승인 문장만 한국어로 그대로 읽습니다. 진단, 처방, 안심 판단, 추가 질문을 하지 않습니다. 사용자의 말에 자발적으로 응답하지 않습니다.' });
     this.session = new RealtimeSession(agent, { transport, model: token.model, tracingDisabled: true, historyStoreAudio: false, automaticallyTriggerResponseForMcpToolCalls: false,
       config: { tracing: null, audio: { input: { transcription: { model: token.transcription_model, language: 'ko' }, turnDetection: { type: 'server_vad', createResponse: false, interruptResponse: false } }, output: { voice: token.voice } } },
     });
@@ -50,6 +52,7 @@ export class VoiceController {
   }
   private handle(e: Record<string, unknown>) {
     if (this.closed) return;
+    if (this.finishing && (String(e.type).startsWith('input_audio_buffer.') || String(e.type).startsWith('conversation.item.input_audio_transcription.'))) return;
     const id = typeof e.item_id === 'string' ? e.item_id : '';
     if (e.type === 'response.created') {
       const response = e.response as { id?: string; metadata?: { generation?: string } } | undefined;
@@ -116,6 +119,15 @@ export class VoiceController {
     // 이어 말한 발언 처리 중에도 최신 승인 질문을 보존한다.
     this.queuedSpeech = text;
     this.flushSpeech();
+  }
+  finish(text: string) {
+    // 입력을 멈추고 마지막 안내 음성은 재생한다.
+    this.finishing = true;
+    this.session?.mute(true);
+    this.paused = false;
+    this.userSpeaking = false;
+    this.pendingAudio.clear(); this.queue.clear();
+    this.speak(text);
   }
   private flushSpeech() {
     if (!this.session || this.closed || this.paused || this.draining || this.queue.size || this.userSpeaking || this.pendingAudio.size || !this.queuedSpeech) return;

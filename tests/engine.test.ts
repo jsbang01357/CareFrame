@@ -5,7 +5,7 @@ import { requestSchema, stateSchema, type InterviewState, type Turn } from '@/li
 import { validateCandidates, validateStateEvidence } from '@/lib/interview/validate-evidence';
 import { buildReport } from '@/lib/report/build-report';
 import { TranscriptQueue } from '@/lib/voice/turn-queue';
-import { riskFields } from '@/data/protocol';
+import { riskFields, requiredFields, questionField, MAX_ANSWER_TURNS } from '@/data/protocol';
 export function runCase(c: FixtureCase) {
   let s = initialState('test-session'); let next;
   for (const [i, part] of c.steps.entries()) {
@@ -28,10 +28,10 @@ describe('handoff 12개 고정 후보: 규칙/상태 회귀 (실제 추출 성�
       case 'T04': expect(fact(s,'rf_black_tarry_stool').status).toBe('unclear'); expect(next.kind).toBe('clarify'); expect(next.question_id).toBe('q_rf_black_tarry_stool'); break;
       case 'T05': expect(fact(s,'vomiting').status).toBe('denied'); expect(fact(s,'medications').status).toBe('unknown'); expect(riskFields.every(f=>fact(s,f).status==='not_assessed')).toBe(true); break;
       case 'T06': expect(s.safety.latched).toBe(false); expect(fact(s,'rf_fainting').status).toBe('not_assessed'); expect(s.contextual_facts[0].subject).toBe('other'); expect(fact(s,'rf_chest_discomfort').status).toBe('denied'); break;
-      case 'T07': { const result=transition({request_id:'end',event:'end',expected_revision:s.revision,state:s,utterance:null,target_turn_id:null}); expect(result.state.completion).toBe('partial'); expect(buildReport(result.state).title).toContain('미완료'); break; }
+      case 'T07': { const result=transition({request_id:'end',event:'end',expected_revision:s.revision,state:s,utterance:null,target_turn_id:null}); expect(result.state.completion).toBe('partial'); expect(buildReport(result.state).patientNextAction).toContain('미완료'); break; }
       case 'T08': expect(fact(s,'medications').value).toBeNull(); expect(fact(s,'medications').status).toBe('unclear'); break;
       case 'T09': expect(fact(s,'onset').value).toBe('사흘 전'); expect(fact(s,'onset').evidence[0].turn_id).toBe('u1'); expect(s.superseded_facts.some(f=>f.value==='일주일')).toBe(true); break;
-      case 'T10': expect(next.kind).toBe('out_of_scope'); expect(fact(s,'location').status).toBe('not_assessed'); break;
+      case 'T10': expect(next.kind).toBe('ask'); expect(fact(s,'location').value).toBe('발목'); break;
       case 'T11': expect(s.facts.every(f=>f.status==='not_assessed')).toBe(true); expect(next.approved_text).not.toMatch(/처방|정상/); break;
       case 'T12': expect(s.safety.latched).toBe(false); expect(fact(s,'rf_breathing_difficulty').status).toBe('denied'); expect(fact(s,'rf_fainting').status).toBe('not_assessed'); break;
     }
@@ -74,7 +74,7 @@ describe('시스템 불변조건', () => {
     const part:FixtureStep={text:'피를 토한 건 아니에요.',facts:[{field:'rf_vomiting_blood',status:'denied',value:null}]}; const t=makeTurn(part,'fixed',null,s.turns[0].id);
     s=transition({request_id:'r',event:'correct',expected_revision:s.revision,state:s,utterance:t,target_turn_id:s.turns[0].id},fixtureExtraction(part,t)).state;
     for (const event of ['end','confirm'] as const) s=transition({request_id:event,event,expected_revision:s.revision,state:s,utterance:null,target_turn_id:null}).state;
-    expect(s.phase).toBe('urgent_stop'); expect(s.safety.latched).toBe(true); expect(buildReport(s).title).toContain('긴급');
+    expect(s.phase).toBe('urgent_stop'); expect(s.safety.latched).toBe(true); expect(buildReport(s).patientNextAction).toContain('긴급');
   });
   it('범위 판정보다 현재 위험 중단 우선', () => {
     const part:FixtureStep={text:'발목도 아프고 지금 가슴이 꽉 눌리고 숨이 차요.',scope:'unsupported',facts:[{field:'rf_chest_discomfort',value:'가슴 압박감',quote:'가슴이 꽉 눌리고'},{field:'rf_breathing_difficulty',value:'호흡곤란',quote:'숨이 차요'}]};
@@ -85,10 +85,32 @@ describe('시스템 불변조건', () => {
     const t=makeTurn(part); const s=initialState('s'); const r=transition({request_id:'r',event:'answer',expected_revision:0,state:s,utterance:t,target_turn_id:null},fixtureExtraction(part,t));
     expect(r.next_action.kind).toBe('urgent_help'); expect(fact(r.state,'rf_fainting').status).toBe('not_assessed');
   });
-  it('12턴 후 미확인 항목은 partial', () => {
-    const s=initialState('s');s.scope='supported';s.accepted_answer_count=11;
-    const part:FixtureStep={text:'잘 모르겠어요.',facts:[{field:'chief_complaint',status:'unknown',value:null}]};const t=makeTurn(part);
+  it('답변 상한 후 미확인 항목은 partial', () => {
+    const s=initialState('s');s.scope='supported';s.accepted_answer_count=MAX_ANSWER_TURNS-1;
+    const part:FixtureStep={text:'잘 모르겠어요.',question:'q_chief_complaint',facts:[{field:'chief_complaint',status:'unknown',value:null}]};const t=makeTurn(part);
     const r=transition({request_id:'r',event:'answer',expected_revision:0,state:s,utterance:t,target_turn_id:null},fixtureExtraction(part,t));expect(r.state.completion).toBe('partial');expect(r.next_action.kind).toBe('review');
+  });
+  it('한 질문씩 답해도 12번째에서 끊기지 않고 문진 완료·확인까지 진행', () => {
+    let s = initialState('full-intake');
+    for (let i = 0; i < requiredFields.length; i++) {
+      const field = questionField(s.last_question_id)!;
+      const risk = riskFields.includes(field);
+      const part: FixtureStep = {text: risk ? '아니요.' : `${field}에 대한 가상 답변`, question: s.last_question_id!, scope: i === 0 ? 'supported' : undefined, facts: [{field,status:risk?'denied':'reported',value:risk?null:`${field} 답변`}]};
+      const t=makeTurn(part,`full-${i}`,s.last_question_id);
+      const r=transition({request_id:`full-${i}`,event:'answer',expected_revision:s.revision,state:s,utterance:t,target_turn_id:null},fixtureExtraction(part,t));
+      s=stateSchema.parse(r.state);
+      if (i < requiredFields.length-1) expect(r.next_action.kind).toBe('ask');
+      else expect(r.next_action.kind).toBe('review');
+    }
+    expect(s.accepted_answer_count).toBeGreaterThan(12);
+    expect(s.completion).toBe('complete');
+    const result=transition({request_id:'confirm',event:'confirm',expected_revision:s.revision,state:s,utterance:null,target_turn_id:null});
+    expect(result.state.phase).toBe('finished');expect(result.state.confirmed_revision).toBe(result.state.revision);
+  });
+  it('소아·타인 범위 밖 요청은 공통 문진으로 강제 진행하지 않는다',()=>{
+    const part:FixtureStep={text:'제 아이의 증상이에요.',scope:'unsupported',facts:[]};
+    const s=initialState('other');const t=makeTurn(part);
+    expect(transition({request_id:'other',event:'answer',expected_revision:0,state:s,utterance:t,target_turn_id:null},fixtureExtraction(part,t)).next_action.kind).toBe('out_of_scope');
   });
   it('동일 필드 중복과 해제된 긴급 상태 스키마 거절', () => {
     const s=initialState('s');s.facts[1]=s.facts[0];expect(stateSchema.safeParse(s).success).toBe(false);

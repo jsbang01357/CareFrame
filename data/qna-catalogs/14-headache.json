@@ -1,0 +1,1091 @@
+{
+  "catalog_schema_version": "careframe-qna-catalog/0.2.0",
+  "case": {
+    "number": 14,
+    "id": "cpx-14-headache",
+    "title": "두통",
+    "category": "symptom",
+    "draft_status": "source_derived_draft",
+    "clinical_review": "not_reviewed",
+    "activation_status": "inactive",
+    "field_mapping_status": "not_mapped_to_current_app",
+    "question_count": 44,
+    "source_derived_question_count": 44
+  },
+  "source_material": [
+    {
+      "type": "local_cpx_document",
+      "source_id": "headache",
+      "file": "CPX schema/CPX_두통.docx",
+      "used_sections": [
+        "병력청취",
+        "Overview"
+      ],
+      "excluded_sections": [
+        "신체검진",
+        "환자 교육의 진단·검사·치료 설명"
+      ],
+      "content_note": "원문 병력청취와 Overview의 이차성 두통 주의사항을 문진 질문으로 정리했다. 임상 검토 전."
+    }
+  ],
+  "answer_contract_ref": "answer-contract.json",
+  "questionnaire": {
+    "resourceType": "Questionnaire",
+    "id": "cpx-14-headache",
+    "url": "urn:careframe:questionnaire:cpx-14-headache",
+    "version": "0.1.0",
+    "name": "CPX14Cpx14Headache",
+    "title": "두통",
+    "status": "draft",
+    "experimental": true,
+    "language": "ko-KR",
+    "subjectType": [
+      "Patient"
+    ],
+    "description": "CPX 두통 원문 기반 문진 초안. 이차성 두통 관련 문항이 포함되어 있으나 임상 검토 전이고 현재 실행 문진에는 연결되지 않았다.",
+    "item": [
+      {
+        "linkId": "group-opening",
+        "text": "시작 질문",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-001",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "chief_complaint"
+              }
+            ],
+            "text": "오늘 가장 불편하게 느끼시는 증상이 무엇인가요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-002",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "onset_time"
+              }
+            ],
+            "text": "언제부터 머리가 아프셨나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-003",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "onset_sequence"
+              }
+            ],
+            "text": "두통이 시작될 당시 상황을 시간 순서대로 말씀해주실 수 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-004",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "headache_location"
+              }
+            ],
+            "text": "머리의 어느 부위가 아픈가요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-005",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "headache_spread"
+              }
+            ],
+            "text": "통증이 얼굴이나 목처럼 다른 부위에도 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-course",
+        "text": "두통의 경과",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-006",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "episode_duration"
+              }
+            ],
+            "text": "한 번 두통이 생기면 얼마나 오래 지속되나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-007",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "episode_frequency"
+              }
+            ],
+            "text": "두통은 얼마나 자주 생기나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-008",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "course_change"
+              }
+            ],
+            "text": "두통의 정도가 점점 심해지는 것 같나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-009",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "similar_episode_history"
+              }
+            ],
+            "text": "이전에도 비슷한 두통을 겪으신 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-010",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "sudden_severe_headache"
+              }
+            ],
+            "text": "갑자기 매우 심한 두통이 시작된 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-character",
+        "text": "두통의 양상과 영향",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-011",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "headache_trigger"
+              }
+            ],
+            "text": "스트레스나 특정 시간대, 자세에 따라 두통이 심해지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-012",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "headache_character"
+              }
+            ],
+            "text": "두통이 박동치듯, 찌르듯, 터질 듯한 느낌 중 어떤 양상에 가까운가요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-013",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "headache_severity"
+              }
+            ],
+            "text": "통증이 전혀 없는 상태를 0, 가장 심한 상태를 10이라고 하면 몇 점인가요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-014",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "daily_activity_impact"
+              }
+            ],
+            "text": "두통 때문에 일상생활에 지장이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-associated",
+        "text": "함께 나타난 증상",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-015",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "fever_dizziness"
+              }
+            ],
+            "text": "두통과 함께 열이 나거나 어지러운 증상이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-016",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "weight_loss"
+              }
+            ],
+            "text": "최근 의도하지 않은 체중 감소가 있었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-017",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "vomiting"
+              }
+            ],
+            "text": "두통과 함께 구토한 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-018",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "speech_change"
+              }
+            ],
+            "text": "말이 어눌해지거나 말하기 어려웠던 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-019",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "visual_change"
+              }
+            ],
+            "text": "시야가 흐려지거나 물체가 여러 개로 보인 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-020",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "limb_weakness"
+              }
+            ],
+            "text": "팔이나 다리에 힘이 빠진 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-021",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "visual_aura"
+              }
+            ],
+            "text": "두통 전에 번쩍이는 빛이나 평소와 다른 시각 변화가 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-022",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "infection_symptoms"
+              }
+            ],
+            "text": "최근 감염 증상이나 발열이 있었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-023",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "tearing_nasal"
+              }
+            ],
+            "text": "두통이 올 때 눈물이 나거나 콧물이 함께 나오나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-024",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "mood_change"
+              }
+            ],
+            "text": "최근 기분이 달라졌거나 불안·우울감이 있었나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-025",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "facial_pain"
+              }
+            ],
+            "text": "얼굴에도 통증이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-factors",
+        "text": "악화·완화 요인",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-026",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "time_pattern"
+              }
+            ],
+            "text": "하루 중 두통이 가장 심한 시간대가 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-027",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "season_pattern"
+              }
+            ],
+            "text": "계절에 따라 두통이 달라지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-028",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "light_sound"
+              }
+            ],
+            "text": "밝은 빛이나 큰 소리에서 두통이 심해지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-029",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "stress_relation"
+              }
+            ],
+            "text": "최근 스트레스와 두통의 변화가 관련되어 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-030",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "position_relation"
+              }
+            ],
+            "text": "특정 자세에서 두통이 심해지거나 나아지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-history",
+        "text": "과거력과 복용약",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-031",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "health_screening"
+              }
+            ],
+            "text": "건강검진을 받은 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-032",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "vascular_history"
+              }
+            ],
+            "text": "고혈압, 당뇨, 이상지질혈증 또는 뇌졸중을 진단받은 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-033",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "other_history"
+              }
+            ],
+            "text": "현재 치료 중인 다른 질환이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-034",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "current_medicine"
+              }
+            ],
+            "text": "현재 복용하거나 최근 중단한 약이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-035",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "analgesic_use"
+              }
+            ],
+            "text": "두통 때문에 진통제를 복용해보셨나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-036",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "head_injury"
+              }
+            ],
+            "text": "최근 머리를 다친 적이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-social_family",
+        "text": "생활습관과 가족력",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-037",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "alcohol_tobacco"
+              }
+            ],
+            "text": "술이나 담배를 사용하신다면 빈도와 양을 말씀해주실 수 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-038",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "coffee_use"
+              }
+            ],
+            "text": "커피를 드신다면 하루에 몇 잔 정도 드시나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-039",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "exercise_occupation"
+              }
+            ],
+            "text": "평소 운동이나 직업 활동이 두통에 영향을 주나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-040",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "family_headache"
+              }
+            ],
+            "text": "가족 중 비슷한 두통을 겪는 분이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-041",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "family_hypertension"
+              }
+            ],
+            "text": "가족 중 고혈압을 진단받은 분이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-reproductive",
+        "text": "필요 시 확인하는 월경 관련 정보",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-042",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "reproductive_permission"
+              }
+            ],
+            "text": "월경 주기와 두통의 관련성을 여쭤봐도 괜찮을까요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          },
+          {
+            "linkId": "q-043",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "menstrual_relation"
+              }
+            ],
+            "text": "월경 주기에 따라 두통이 생기거나 달라지나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      },
+      {
+        "linkId": "group-closing",
+        "text": "마무리 확인",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "q-044",
+            "code": [
+              {
+                "system": "urn:careframe:field-id",
+                "code": "patient_concern"
+              }
+            ],
+            "text": "오늘 두통과 관련해 가장 걱정되거나 추가로 말씀하고 싶은 점이 있나요?",
+            "type": "string",
+            "required": false,
+            "repeats": false
+          }
+        ]
+      }
+    ]
+  },
+  "item_annotations": [
+    {
+      "link_id": "q-001",
+      "field_id": "chief_complaint",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > Opening",
+      "source_question_id": "headache.chief_complaint",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-002",
+      "field_id": "onset_time",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > O (Onset)",
+      "source_question_id": "headache.onset_time",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-003",
+      "field_id": "onset_sequence",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > O (Onset)",
+      "source_question_id": "headache.onset_sequence",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-004",
+      "field_id": "headache_location",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > L (Location)",
+      "source_question_id": "headache.headache_location",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-005",
+      "field_id": "headache_spread",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > L (Location)",
+      "source_question_id": "headache.headache_spread",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-006",
+      "field_id": "episode_duration",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > D (Duration)",
+      "source_question_id": "headache.episode_duration",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-007",
+      "field_id": "episode_frequency",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > Co (Course)",
+      "source_question_id": "headache.episode_frequency",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-008",
+      "field_id": "course_change",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > Co (Course)",
+      "source_question_id": "headache.course_change",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-009",
+      "field_id": "similar_episode_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > Ex (Experience)",
+      "source_question_id": "headache.similar_episode_history",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-010",
+      "field_id": "sudden_severe_headache",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "Overview > 이차성 두통 감별",
+      "source_question_id": "headache.sudden_severe_headache",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-011",
+      "field_id": "headache_trigger",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > C (Character)",
+      "source_question_id": "headache.headache_trigger",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-012",
+      "field_id": "headache_character",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > C (Character)",
+      "source_question_id": "headache.headache_character",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-013",
+      "field_id": "headache_severity",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > C (Character)",
+      "source_question_id": "headache.headache_severity",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-014",
+      "field_id": "daily_activity_impact",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > C (Character)",
+      "source_question_id": "headache.daily_activity_impact",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-015",
+      "field_id": "fever_dizziness",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "headache.fever_dizziness",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-016",
+      "field_id": "weight_loss",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "headache.weight_loss",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-017",
+      "field_id": "vomiting",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "headache.vomiting",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-018",
+      "field_id": "speech_change",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "headache.speech_change",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-019",
+      "field_id": "visual_change",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "headache.visual_change",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-020",
+      "field_id": "limb_weakness",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "headache.limb_weakness",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-021",
+      "field_id": "visual_aura",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "headache.visual_aura",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-022",
+      "field_id": "infection_symptoms",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "headache.infection_symptoms",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-023",
+      "field_id": "tearing_nasal",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "headache.tearing_nasal",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-024",
+      "field_id": "mood_change",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "headache.mood_change",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-025",
+      "field_id": "facial_pain",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > A (Associated Sx.)",
+      "source_question_id": "headache.facial_pain",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-026",
+      "field_id": "time_pattern",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "headache.time_pattern",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-027",
+      "field_id": "season_pattern",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "headache.season_pattern",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-028",
+      "field_id": "light_sound",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "headache.light_sound",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-029",
+      "field_id": "stress_relation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "headache.stress_relation",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-030",
+      "field_id": "position_relation",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > F (Factor)",
+      "source_question_id": "headache.position_relation",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-031",
+      "field_id": "health_screening",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > E (Event)",
+      "source_question_id": "headache.health_screening",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-032",
+      "field_id": "vascular_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > E (Event) / 과 (과거력)",
+      "source_question_id": "headache.vascular_history",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-033",
+      "field_id": "other_history",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 과 (과거력)",
+      "source_question_id": "headache.other_history",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-034",
+      "field_id": "current_medicine",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 약 (약물력)",
+      "source_question_id": "headache.current_medicine",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-035",
+      "field_id": "analgesic_use",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > 약 (약물력)",
+      "source_question_id": "headache.analgesic_use",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-036",
+      "field_id": "head_injury",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 과 (과거력) / 외 (외상력)",
+      "source_question_id": "headache.head_injury",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-037",
+      "field_id": "alcohol_tobacco",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "headache.alcohol_tobacco",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-038",
+      "field_id": "coffee_use",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "headache.coffee_use",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-039",
+      "field_id": "exercise_occupation",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > 사 (사회력)",
+      "source_question_id": "headache.exercise_occupation",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-040",
+      "field_id": "family_headache",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 가 (가족력)",
+      "source_question_id": "headache.family_headache",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-041",
+      "field_id": "family_hypertension",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 가 (가족력)",
+      "source_question_id": "headache.family_hypertension",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-042",
+      "field_id": "reproductive_permission",
+      "answer_type": "free_text",
+      "source_anchor": "병력청취 > 여 (여성력)",
+      "source_question_id": "headache.reproductive_permission",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-043",
+      "field_id": "menstrual_relation",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > 여 (여성력)",
+      "source_question_id": "headache.menstrual_relation",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    },
+    {
+      "link_id": "q-044",
+      "field_id": "patient_concern",
+      "answer_type": "yes_no_detail",
+      "source_anchor": "병력청취 > Closing",
+      "source_question_id": "headache.patient_concern",
+      "content_review": "not_reviewed",
+      "draft_basis": "paraphrased_from_local_cpx_document"
+    }
+  ],
+  "question_policy": {
+    "ask_one_question_per_turn": true,
+    "selection_policy": "not_defined",
+    "clinical_review": "not_reviewed",
+    "active_in_current_interview": false,
+    "source_answer_scripts_present": false,
+    "app_integration": "reference_only_unwired",
+    "compatible_with_current_field_enum": false
+  }
+}

@@ -1,5 +1,7 @@
-import { fields, riskFields, statusLabels, type FieldId } from '@/data/protocol';
-import type { Fact, InterviewState } from '@/lib/contracts';
+import { fields, riskFieldsFor, isAbdominal, statusLabels, type FieldId } from '@/data/protocol';
+import { buildCareGuidance } from '@/lib/interview/care-guidance';
+import { findCpxCatalog, type CpxCatalog } from '@/data/cpx-catalog';
+import type { Fact, InterviewState, Sex } from '@/lib/contracts';
 
 export type FactStatus = Fact['status'];
 export type ReportedBy = 'patient' | 'caregiver';
@@ -17,6 +19,13 @@ export interface ClinicalNote {
   title: 'Pre-Visit Clinical Note';
   section: 'S — Subjective';
   demographics: { age: number | null; sex: string | null };
+  selectedTopic: {
+    label: string;
+    source: 'CPX 48 선택' | '직접 입력';
+    category: CpxCatalog['category'] | null;
+    draftStatus: CpxCatalog['draft_status'] | 'patient_entered';
+    sourceDerivedQuestionCount: number;
+  } | null;
   interviewMode: '음성' | '텍스트' | '음성·텍스트' | '미확인';
   chiefComplaint: ClinicalFact;
   hpiSummary: string;
@@ -44,6 +53,9 @@ export interface ClinicalNote {
 }
 
 const NOT_ASSESSED: FactStatus = 'not_assessed';
+const sexLabels: Record<Sex, string> = {
+  female: '여성', male: '남성', other: '기타', prefer_not_to_say: '응답하지 않음',
+};
 function makeFact(state: InterviewState, field: FieldId | string, label: string, source?: Fact): ClinicalFact {
   const found = source || state.facts.find(f => f.field_id === field);
   const evidence = found?.evidence || [];
@@ -101,25 +113,42 @@ export function buildClinicalNote(state: InterviewState, fixture = false): Clini
     hpi.character.status === 'reported' ? `${hpi.character.value} 양상` : null,
     hpi.aggravating.status === 'reported' ? `악화 요인: ${hpi.aggravating.value}` : null,
     hpi.relieving.status === 'reported' ? `완화 요인: ${hpi.relieving.value}` : null,
+    hpi.severity.status === 'reported' ? `NRS ${hpi.severity.value}` : null,
+    hpi.duration.status === 'reported' ? `한 번에 ${hpi.duration.value} 지속` : null,
   ].filter(Boolean).join(' · ') || factValue(chiefComplaint);
   const note = {
     title: 'Pre-Visit Clinical Note' as const,
     section: 'S — Subjective' as const,
-    demographics: { age: null, sex: null },
+    demographics: {
+      age: state.demographics.age,
+      sex: state.demographics.sex ? sexLabels[state.demographics.sex] : null,
+    },
+    selectedTopic: (() => {
+      const catalog = findCpxCatalog(state.selected_cpx_id);
+      if (catalog) return {
+        label: catalog.title, source: 'CPX 48 선택' as const, category: catalog.category,
+        draftStatus: catalog.draft_status, sourceDerivedQuestionCount: catalog.source_derived_question_count,
+      };
+      if (state.selected_topic_text) return {
+        label: state.selected_topic_text, source: '직접 입력' as const, category: null,
+        draftStatus: 'patient_entered' as const, sourceDerivedQuestionCount: 0,
+      };
+      return null;
+    })(),
     interviewMode: (() => {
       const modes = new Set(state.turns.filter(t => t.role === 'user').map(t => t.origin === 'voice_transcript' ? '음성' : '텍스트'));
       return modes.size > 1 ? '음성·텍스트' : [...modes][0] || '미확인';
     })() as ClinicalNote['interviewMode'],
     chiefComplaint, hpi, hpiSummary,
-    associatedSymptoms: [nausea, fact('vomiting'), fact('rf_black_tarry_stool', '흑색변'), fact('fever'), fact('cold_sweat')],
-    redFlags: riskFields.map(id => fact(id)),
+    associatedSymptoms: [nausea, fact('vomiting'), fact('rf_black_tarry_stool', '흑색변'), fact('fever'), ...(isAbdominal(state) ? [fact('diarrhea'), fact('urinary_pain'), fact('weight_loss')] : [fact('cold_sweat')])],
+    redFlags: riskFieldsFor(state).map(id => fact(id)),
     history: {
       pastMedical: fact('medical_history', '과거력'), pastSurgical,
       medications: fact('medications'), allergies, familyHistory,
     },
     patientConcerns: [fact('concern'), fact('patient_belief')],
-    redFlagsComplete: state.facts.filter(f => riskFields.includes(f.field_id)).every(f => ['reported', 'denied'].includes(f.status)),
-    patientNextAction: state.safety.latched
+    redFlagsComplete: riskFieldsFor(state).every(id => ['reported', 'denied'].includes(state.facts.find(f => f.field_id === id)?.status || 'not_assessed')),
+    patientNextAction: isAbdominal(state) ? buildCareGuidance(state).text : state.safety.latched
       ? '위험 신호로 문진을 중단했습니다. 화면의 긴급 안내를 확인하세요.'
       : state.completion === 'complete'
         ? '수집한 내용을 의료진에게 보여 주세요. 이 기록만으로 응급질환을 배제할 수 없습니다.'
@@ -140,37 +169,32 @@ function factValue(fact: ClinicalFact, compact = false) {
   return statusLabels[fact.status];
 }
 function emrLine(label: string, fact: ClinicalFact) {
-  const quote = fact.sourceQuote ? ` — 원문: “${fact.sourceQuote}”` : '';
-  return `${label}: ${factValue(fact, true)}${quote}`;
+  return `${label}: ${factValue(fact, true)}`;
 }
 export function toEmrText(note: ClinicalNote) {
   const h = note.hpi;
   const lines = [
     '[AI Pre-Visit History — Unverified]',
-    `Patient: age ${note.demographics.age ?? '미확인'} / sex ${note.demographics.sex ?? '미확인'} · 환자 자가응답 · AI 구조화 · ${note.interviewMode}`,
-    `CC: ${factValue(note.chiefComplaint)}${note.chiefComplaint.sourceQuote ? ` — “${note.chiefComplaint.sourceQuote}”` : ''}`,
-    '', 'HPI:',
-    note.hpiSummary,
-    emrLine('Onset', h.onset), emrLine('Location', h.location), emrLine('Character', h.character),
-    emrLine('Severity', h.severity), emrLine('Episode duration', h.duration),
-    emrLine('Aggravating / meal relation', h.aggravating), emrLine('Relieving factors', h.relieving),
+    `Patient: ${note.demographics.age ?? '미확인'}세 / ${note.demographics.sex ?? '미확인'} · 가상 증례 · 환자 자가응답 · AI ${note.interviewMode}`,
+    note.selectedTopic ? `Patient-selected topic: ${note.selectedTopic.label}` : '',
+    `CC: ${factValue(note.chiefComplaint)}`,
+    '', 'HPI:', note.hpiSummary,
+    [emrLine('Onset', h.onset), emrLine('Location', h.location), emrLine('Character', h.character)].join('; '),
+    [emrLine('NRS', h.severity), emrLine('Episode duration', h.duration)].join('; '),
+    [emrLine('Aggravating', h.aggravating), emrLine('Relieving', h.relieving)].join('; '),
     emrLine('Daily function', h.dailyFunction),
-    '', 'Pertinent ROS:',
-    ...note.associatedSymptoms.map(f => emrLine(f.label, f)),
+    '', 'Pertinent ROS:', note.associatedSymptoms.map(f => emrLine(f.label, f)).join('; '),
     '', 'Relevant History:',
     emrLine('PMHx', note.history.pastMedical), emrLine('PSHx', note.history.pastSurgical),
     emrLine('Medication', note.history.medications), emrLine('Drug allergy', note.history.allergies),
     emrLine('Family history', note.history.familyHistory),
-    '', 'Red Flags:',
-    ...note.redFlags.map(f => emrLine(f.label, f)),
-    `Red-flag review: ${note.redFlagsComplete ? 'listed items assessed' : 'not fully assessed; clinician confirmation required'}`,
-    `Missing information: ${note.missingInformation.length ? note.missingInformation.join(', ') : '기록된 미확인 항목 없음'}`,
-    '', `Patient next step: ${note.patientNextAction}`,
-    `O: ${note.objective}`,
-    `A: ${note.assessment}`,
-    `P: ${note.plan}`,
-    '', '* 환자 자가응답을 AI가 구조화한 초안입니다. 원문과 상태를 확인하고 의료진이 검증해야 합니다.',
-    '* 미확인·잘 모름·불명확·응답 거부는 서로 구분되며, 정상 또는 음성으로 간주하지 않습니다.',
+    '', 'Red Flags:', note.redFlags.map(f => emrLine(f.label, f)).join('; '),
+    `Risk items: ${note.redFlagsComplete ? '열거한 항목 응답 확인; 응급질환 배제 아님' : '미확인 항목 있음; 의료진 확인 필요'}`,
+    `추가 확인: ${note.missingInformation.length ? note.missingInformation.join(', ') : '기록된 미확인 항목 없음'}`,
+    '', `O: ${note.objective}`, `A: ${note.assessment}`, `P: ${note.plan}`,
+    '', '[환자 행동 안내 — SOAP-S와 별도]', note.patientNextAction,
+    '', '* 환자 자가응답을 AI가 구조화한 초안이며 의료진 검증이 필요합니다.',
+    '* 미질문·모름·불명확·응답 거부를 부정 소견으로 간주하지 않습니다.',
     note.fixture ? '* 개발용 고정 사실 후보로 생성한 가상 시연 자료입니다.' : '',
   ];
   return lines.filter((line, i) => line || lines[i - 1] !== '').join('\n').trim();

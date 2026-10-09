@@ -32,6 +32,13 @@ describe('음성 제어 불변조건 — 가짜 transport로 검증 (실제 음�
   await Promise.resolve();await Promise.resolve();expect(stop).toHaveBeenCalled();expect(m.close).toHaveBeenCalled();
  });
  it('종료와 연결 오류에서 앱이 소유한 마이크 트랙 종료',async()=>{await voice.connect();voice.close();expect(stop).toHaveBeenCalled();});
+ it('입력을 일시정지한 뒤에도 마지막 행동 안내를 읽고 늦은 전사를 무시',async()=>{
+  await voice.connect();voice.pause(true);voice.finish('오늘 병원에서 확인받으세요.');
+  expect(m.mute).toHaveBeenLastCalledWith(true);
+  expect(m.send).toHaveBeenCalledWith(expect.objectContaining({type:'response.create',response:expect.objectContaining({instructions:expect.stringContaining('오늘 병원에서 확인받으세요.')})}));
+  emit({type:'conversation.item.input_audio_transcription.completed',item_id:'late',transcript:'늦은 입력'});
+  expect(transcript).not.toHaveBeenCalled();expect(m.close).not.toHaveBeenCalled();
+ });
  it('이어 말한 답변의 전사를 기다린 뒤 최신 질문을 재생',async()=>{
   await voice.connect();
   transcript.mockImplementationOnce(async()=>{voice.speak('다음 질문');return true;});

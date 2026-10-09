@@ -242,5 +242,14 @@
       "content_review": "not_reviewed",
       "draft_basis": "user_supplied_topic_label_only_no_topic_specific_cpx_source"
     }
-  ]
+  ],
+  "question_policy": {
+    "ask_one_question_per_turn": true,
+    "selection_policy": "not_defined",
+    "clinical_review": "not_reviewed",
+    "active_in_current_interview": false,
+    "source_answer_scripts_present": false,
+    "app_integration": "reference_only_unwired",
+    "compatible_with_current_field_enum": false
+  }
 }

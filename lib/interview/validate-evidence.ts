@@ -1,12 +1,14 @@
 import { questionField } from '@/data/protocol';
 import type { Candidate, Extraction, InterviewState, Turn } from '@/lib/contracts';
 export class EvidenceError extends Error {}
-const indirect = /^(아니요|아뇨|없어요|없습니다|네|예|응|있어요|몰라요|모르겠어요)[.!?\s]*$/;
+const indirect = /^(아니요|아뇨|아닙니다|없어요|없습니다|네|예|응|맞아요|(?:네|예)[,\s]+맞아요|있어요|몰라요|모르겠어요|잘 모르겠어요)[.!?\s]*$/;
 export const isIndirectQuote = (quote: string) => indirect.test(quote.trim());
 export function validateCandidates(result: Extraction, utterance: Turn) {
   for (const f of result.facts) validateCandidate(f, utterance);
   for (const e of result.scope_evidence) {
     if (e.turn_id !== utterance.id || !utterance.text.includes(e.quote)) throw new EvidenceError('범위 근거 불일치');
+    if (e.question_id !== null && e.question_id !== utterance.prompted_question_id) throw new EvidenceError('범위 질문 근거 불일치');
+    if (isIndirectQuote(e.quote) && (e.question_id !== 'q_scope' || utterance.prompted_question_id !== 'q_scope')) throw new EvidenceError('간접 범위 답변 질문 불일치');
   }
   if (result.scope_signal !== 'uncertain' && !result.scope_evidence.length) throw new EvidenceError('범위 근거 없음');
 }

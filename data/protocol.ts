@@ -1,4 +1,7 @@
-export const PROTOCOL_VERSION = 'upper-abdomen-demo-1';
+export const PROTOCOL_VERSION = 'abdominal-intake-demo-3';
+export const MAX_ANSWER_TURNS = 40;
+export const SESSION_DURATION_MS = 15 * 60 * 1000;
+export const SCOPE_QUESTION = '말씀하신 것은 성인 본인의 현재 증상인가요?';
 export const PROTOCOL_REVIEW = { status: 'not_reviewed', reviewer: null, reviewed_at: null } as const;
 export const fields = {
   chief_complaint: '가장 불편한 증상', location: '불편한 위치', onset: '시작 시점',
@@ -8,6 +11,12 @@ export const fields = {
   rf_vomiting_blood: '이번 증상 중 피 섞인 구토', rf_black_tarry_stool: '이번 증상 중 검고 끈적한 변',
   character: '증상의 느낌', meal_relation: '식사와의 관계', vomiting: '구토', fever: '열', cold_sweat: '식은땀',
   medical_history: '과거 병력', weight_change: '체중 변화', patient_belief: '사용자의 생각',
+  pain_severity: '통증 강도 (NRS 0–10)', duration: '한 번의 통증 지속시간', relieving_factors: '완화 요인',
+  nausea: '오심', past_surgical_history: '수술력', drug_allergies: '약물 알레르기',
+  improving: '증상 호전 여부', water_tolerance: '물 섭취 가능 여부', pregnancy_possible: '임신 또는 임신 가능성',
+  rf_abdominal_touch: '배를 만질 때 심한 통증', rf_bloody_stool: '이번 증상 중 혈변',
+  rf_cannot_urinate: '소변이 전혀 나오지 않음', rf_cannot_pass: '대변과 방귀가 모두 나오지 않음',
+  diabetes: '당뇨병 병력', diarrhea: '설사', urinary_pain: '배뇨통', weight_loss: '의도하지 않은 체중 감소',
 } as const;
 export type FieldId = keyof typeof fields;
 export const fieldIds = Object.keys(fields) as FieldId[];
@@ -26,7 +35,39 @@ export const questions: Partial<Record<FieldId, string>> = {
   rf_vomiting_blood: '이번 증상 중 피나 커피 찌꺼기 같은 것을 토한 적이 있나요?',
   rf_black_tarry_stool: '이번 증상 중 검고 끈적한 변을 본 적이 있나요?',
   vomiting: '이번 증상 중 구토를 한 적이 있나요?',
+  character: '배가 어떻게 아픈가요? 쓰리거나 쥐어짜는 느낌처럼 설명해 주세요.',
+  pain_severity: '지금 배의 통증이 0부터 10 중 어느 정도인가요? 0은 통증 없음, 10은 견디기 어려운 통증이에요.',
+  duration: '통증이 한 번 생기면 보통 얼마나 오래 가나요?',
+  meal_relation: '식사하거나 움직이면 통증이 어떻게 달라지나요?',
+  relieving_factors: '쉬거나 자세를 바꾸는 등 통증을 줄여주는 것이 있나요?',
+  nausea: '이번 증상 중 메스꺼움을 느꼈나요?', fever: '이번 증상 중 열이 났나요?',
+  past_surgical_history: '수술받은 적이 있나요? 있다면 어떤 수술인지 말씀해 주세요.',
+  medical_history: '진단받은 질환이나 치료 중인 병이 있나요? 없다면 없다고 말씀해 주세요.',
+  drug_allergies: '약물 알레르기가 있나요? 있다면 약 이름과 어떤 반응이 있었는지 말씀해 주세요.',
+  improving: '증상이 시작했을 때보다 지금은 나아지고 있나요?',
+  water_tolerance: '지금 물을 마시고 토하지 않고 유지할 수 있나요?',
+  pregnancy_possible: '현재 임신 중이거나 임신 가능성이 있나요? 해당하지 않으면 아니오를 선택해 주세요.',
+  rf_abdominal_touch: '배를 가볍게 만져도 심하게 아픈가요? 확인하려고 일부러 누르지는 마세요.',
+  rf_bloody_stool: '이번 증상 중 변에 피가 섞여 나온 적이 있나요?',
+  rf_cannot_urinate: '소변이 마려운데 전혀 나오지 않나요?',
+  rf_cannot_pass: '지금 대변과 방귀가 모두 전혀 나오지 않나요?',
+  diabetes: '당뇨병을 진단받은 적이 있나요?', diarrhea: '이번 증상 중 설사를 했나요?',
+  urinary_pain: '이번 증상 중 소변볼 때 통증이 있나요?', weight_loss: '최근 일부러 빼지 않았는데 체중이 줄었나요?',
 };
+export const ABDOMINAL_CPX_ID = 'cpx-21-acute-abdominal-pain';
+export const abdominalRiskFields: FieldId[] = [...riskFields, 'rf_abdominal_touch', 'rf_bloody_stool', 'rf_cannot_urinate', 'rf_cannot_pass'];
+export const abdominalRequiredFields: FieldId[] = [
+  'chief_complaint', ...abdominalRiskFields, 'location', 'onset', 'character', 'pain_severity', 'pattern',
+  'duration', 'meal_relation', 'relieving_factors', 'severity_function', 'nausea', 'vomiting', 'fever',
+  'diarrhea', 'urinary_pain', 'weight_loss', 'improving', 'water_tolerance', 'pregnancy_possible',
+  'diabetes', 'medical_history', 'past_surgical_history', 'medications', 'drug_allergies', 'concern',
+];
+export const isAbdominal = (state: { selected_cpx_id: string | null }) => state.selected_cpx_id === ABDOMINAL_CPX_ID;
+export const riskFieldsFor = (state: { selected_cpx_id: string | null }) => isAbdominal(state) ? abdominalRiskFields : riskFields;
+export const requiredFieldsFor = (state: { selected_cpx_id: string | null }) => isAbdominal(state) ? abdominalRequiredFields : requiredFields;
+export const yesNoFields: FieldId[] = [...abdominalRiskFields, 'nausea', 'vomiting', 'fever', 'diarrhea', 'urinary_pain', 'weight_loss', 'improving', 'water_tolerance', 'pregnancy_possible', 'diabetes'];
+export const positiveAnswer = (field: FieldId) => field === 'improving' ? '증상이 나아지고 있다고 응답'
+  : field === 'water_tolerance' ? '물을 마시고 유지할 수 있다고 응답' : `${fields[field]} 있다고 응답`;
 export const questionId = (field: FieldId) => `q_${field}`;
 export function questionField(id: string | null): FieldId | undefined {
   return fieldIds.find(f => questionId(f) === id && questions[f]);

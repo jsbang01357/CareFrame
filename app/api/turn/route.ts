@@ -1,4 +1,5 @@
 import { requestSchema, responseSchema } from '@/lib/contracts';
+import { MAX_ANSWER_TURNS } from '@/data/protocol';
 import { extract } from '@/lib/interview/extract';
 import { transition } from '@/lib/interview/engine';
 import { validateStateEvidence } from '@/lib/interview/validate-evidence';
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
     try { validateStateEvidence(body.state); } catch { throw new HttpError(400, 'invalid_evidence', '기록의 원문 근거를 확인할 수 없습니다.'); }
     const isInput = body.event === 'answer' || body.event === 'correct';
     if (isInput && (!body.utterance || body.utterance.role !== 'user' || !body.utterance.final)) throw new HttpError(400, 'invalid_turn', '확정된 사용자 발언이 필요합니다.');
-    if (isInput && body.event === 'answer' && (body.state.accepted_answer_count >= 12 || ['finished','review','out_of_scope','urgent_stop'].includes(body.state.phase))) throw new HttpError(400, 'session_closed', '새 답변을 받을 수 없는 상태입니다.');
+    if (isInput && body.event === 'answer' && (body.state.accepted_answer_count >= MAX_ANSWER_TURNS || ['finished','review','out_of_scope','urgent_stop'].includes(body.state.phase))) throw new HttpError(400, 'session_closed', '새 답변을 받을 수 없는 상태입니다.');
     const duplicate = body.utterance && (body.state.processed_turn_ids.includes(body.utterance.id) || (body.utterance.provider_item_id && body.state.turns.some(t => t.provider_item_id === body.utterance!.provider_item_id)));
     const signal = AbortSignal.any([req.signal, AbortSignal.timeout(14500)]);
     const extracted = isInput && !duplicate ? await extract(body.utterance!, body.state, signal) : undefined;
