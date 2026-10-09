@@ -65,14 +65,15 @@ export const abdominalRequiredFields: FieldId[] = [
 export const isAbdominal = (state: { selected_cpx_id: string | null }) => state.selected_cpx_id === ABDOMINAL_CPX_ID;
 export const riskFieldsFor = (state: { selected_cpx_id: string | null }) => isAbdominal(state) ? abdominalRiskFields : riskFields;
 export const requiredFieldsFor = (state: { selected_cpx_id: string | null }) => isAbdominal(state) ? abdominalRequiredFields : requiredFields;
-export const yesNoFields: FieldId[] = [...abdominalRiskFields, 'nausea', 'vomiting', 'fever', 'diarrhea', 'urinary_pain', 'weight_loss', 'improving', 'water_tolerance', 'pregnancy_possible', 'diabetes'];
+export const detailFields: FieldId[] = ['medications', 'medical_history', 'past_surgical_history', 'drug_allergies'];
+export const yesNoFields: FieldId[] = [...abdominalRiskFields, 'nausea', 'vomiting', 'fever', 'diarrhea', 'urinary_pain', 'weight_loss', 'improving', 'water_tolerance', 'pregnancy_possible', 'diabetes', ...detailFields];
 export const positiveAnswer = (field: FieldId) => field === 'improving' ? '증상이 나아지고 있다고 응답'
   : field === 'water_tolerance' ? '물을 마시고 유지할 수 있다고 응답' : `${fields[field]} 있다고 응답`;
 export const questionId = (field: FieldId) => `q_${field}`;
 export function questionField(id: string | null): FieldId | undefined {
   return fieldIds.find(f => questionId(f) === id && questions[f]);
 }
-export const URGENT_TEXT = '말씀하신 내용에는 지금 바로 의료진의 평가가 필요한 위험 신호가 있습니다. 문진을 계속하기보다 119에 연락해 도움을 요청하세요. 직접 운전하지 마세요.';
+export const URGENT_TEXT = '말씀하신 내용에는 지금 바로 의료진의 평가가 필요한 위험 신호가 있습니다. 119에 연락해 도움을 요청하는 일을 미루지 마세요. 직접 운전하지 마세요.';
 export const GENERAL_TEXT = '말씀하신 내용을 진료 때 보여드릴 수 있게 정리했어요. 증상이 지속되거나 반복되면 의료기관에 문의해 진료를 받으세요. 이 대화만으로 응급질환을 배제할 수는 없어요.';
 export const LIMITED_TEXT = '현재 준비된 문진 범위나 확인된 정보만으로는 다음 행동을 충분히 판단하기 어렵습니다. 확인한 내용만 정리하고 의료기관에 문의해 안내받으세요. 심한 증상이나 호흡곤란·쓰러짐 등이 있으면 대화를 기다리지 말고 긴급 도움을 요청하세요.';
 export const statusLabels = { reported: '말씀하신 내용', denied: '없다고 답함', unknown: '잘 모름', unclear: '추가 확인 필요', declined: '답변하지 않음', not_assessed: '아직 확인하지 않음' } as const;

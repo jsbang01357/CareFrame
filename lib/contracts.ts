@@ -46,10 +46,11 @@ export const stateSchema = z.object({
   if (s.selected_cpx_id && s.selected_topic_text) ctx.addIssue({ code: 'custom', message: 'Choose a catalog topic or enter a topic, not both' });
   if (new Set(s.facts.map(f => f.field_id)).size !== fieldIds.length) ctx.addIssue({ code: 'custom', message: 'Duplicate field' });
   if (new Set(s.turns.map(t => t.id)).size !== s.turns.length) ctx.addIssue({ code: 'custom', message: 'Duplicate turn' });
-  if (s.safety.latched && (s.phase !== 'urgent_stop' || s.safety.status !== 'escalated')) ctx.addIssue({ code: 'custom', message: 'Invalid latched state' });
+  if (s.safety.latched && (!['interviewing','review','finished','urgent_stop','out_of_scope'].includes(s.phase) || s.safety.status !== 'escalated')) ctx.addIssue({ code: 'custom', message: 'Invalid latched state' });
   for (const q of s.asked_question_ids) if (!questionField(q) && q !== 'q_scope') ctx.addIssue({ code: 'custom', message: 'Unknown question' });
 });
-export const actionSchema = z.object({ kind: z.enum(['ask','clarify','review','urgent_help','out_of_scope','pause','finish']), question_id: id.nullable(), approved_text: z.string().max(1500), reason_code: id, speak: z.boolean(), report_available: z.boolean() }).strict();
+export const actionSchema = z.object({ kind: z.enum(['ask','clarify','review','urgent_help','out_of_scope','pause','finish']), question_id: id.nullable(), approved_text: z.string().max(1500), summary: z.string().max(1000).nullable(), reason_code: id, speak: z.boolean(), report_available: z.boolean() }).strict();
+export const finalSummaryResponseSchema = z.object({ summary: z.string().min(1).max(1000) }).strict();
 export const requestSchema = z.object({ request_id: id, event: z.enum(['answer','correct','end','confirm']), expected_revision: z.number().int().nonnegative(), state: stateSchema, utterance: turnSchema.nullable(), target_turn_id: id.nullable() }).strict();
 export const responseSchema = z.object({ request_id: id, base_revision: z.number().int().nonnegative(), state: stateSchema, next_action: actionSchema, timing: z.object({ server_ms: z.number().nonnegative() }).strict() }).strict();
 export type Turn = z.infer<typeof turnSchema>;

@@ -30,14 +30,16 @@ export function buildCareGuidance(state: InterviewState): CareGuidance {
   const severity = /^(?:통증 강도(?:는)?\s*)?(10|[0-9])(?:\s*(?:\/\s*10|점)(?:이라고 응답)?)?$/.exec(severityValue.trim());
   const score = severity ? Number(severity[1]) : null;
   const location = fact('location')?.value || '';
+  const pattern = fact('pattern')?.value || '';
+  const oneOff = /일회성|한 번만|한번만|한 차례만/.test(pattern) && !/반복|지속|계속|왔다.*갔다/.test(pattern);
   const canObserve = state.scope === 'supported' && state.completion === 'complete' && !unassessedRisk.length && !missing.length
-    && /배|복부|명치|심와부/.test(location) && score !== null && score <= 3
+    && /배|복부|명치|심와부/.test(location) && score !== null && score <= 3 && oneOff
     && reported('improving') && reported('water_tolerance')
     && ['pregnancy_possible', 'diabetes', 'medical_history', 'medications', 'fever', 'vomiting', 'diarrhea', 'urinary_pain', 'weight_loss'].every(id => denied(id as FieldId));
   if (canObserve) return {
     level: 'observe', title: '잠시 쉬면서 증상 변화를 관찰하세요',
     text: '통증이 가볍고 나아지고 있다고 답하셨어요. 우선 잠시 쉬면서 물을 조금씩 마시고 상태를 관찰하세요. 통증이 계속되거나 다시 생기면 병원에서 진료를 받으세요. 악화되거나 위험 증상이 생기면 기다리지 마세요.',
-    reasons: ['가벼운 통증으로 응답', '증상이 나아지고 있다고 응답', '물 섭취가 가능하며 열거한 위험 항목을 부정함'], warning,
+    reasons: ['가벼운 일회성 통증으로 응답', '증상이 나아지고 있다고 응답', '물 섭취가 가능하며 열거한 위험 항목을 부정함'], warning,
   };
   const reasons = [
     unassessedRisk.length ? `위험 항목 미확인·불명확: ${unassessedRisk.map(id => fields[id]).join(', ')}` : null,
@@ -45,6 +47,7 @@ export function buildCareGuidance(state: InterviewState): CareGuidance {
     missing.length ? `추가 확인 필요: ${missing.map(id => fields[id]).join(', ')}` : null,
     reported('pregnancy_possible') ? '임신 또는 임신 가능성을 보고함' : null,
     !reported('improving') ? '증상 호전이 확인되지 않음' : null,
+    !oneOff ? '일회성 통증으로 확인되지 않음 — 지속·반복 여부 확인 필요' : null,
     denied('water_tolerance') ? '물 섭취 유지가 어렵다고 응답' : null,
     ...(['fever', 'vomiting', 'diarrhea', 'urinary_pain', 'weight_loss', 'medical_history'] as FieldId[]).filter(reported).map(id => `${fields[id]} 보고`),
   ].filter((x): x is string => Boolean(x));

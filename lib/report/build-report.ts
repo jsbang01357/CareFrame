@@ -1,4 +1,3 @@
-import { URGENT_TEXT, GENERAL_TEXT, LIMITED_TEXT } from '@/data/protocol';
 import type { InterviewState } from '@/lib/contracts';
 import { buildClinicalNote, toEmrText } from './clinical-note';
 import { buildCareGuidance } from '@/lib/interview/care-guidance';

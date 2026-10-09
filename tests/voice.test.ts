@@ -100,4 +100,41 @@ describe('음성 제어 불변조건 — 가짜 transport로 검증 (실제 음�
   voice.close();voice.speak('종료 뒤 질문');expect(m.send).not.toHaveBeenCalled();
  });
  it('연결 실패에서 마이크 트랙 종료',async()=>{m.connect.mockRejectedValue(new Error('failed'));await expect(voice.connect()).rejects.toThrow();expect(stop).toHaveBeenCalled();});
+ it('마이크 권한 거절을 통신 연결 실패와 구분',async()=>{
+  vi.mocked(navigator.mediaDevices.getUserMedia).mockRejectedValue(new DOMException('denied','NotAllowedError'));
+  await expect(voice.connect()).rejects.toThrow('마이크 연결 실패 (NotAllowedError)');
+  expect(m.connect).not.toHaveBeenCalled();
+ });
+ it('마이크 API가 없는 환경에서는 안내하고 토큰 발급을 요청하지 않음',async()=>{
+  vi.stubGlobal('navigator',{mediaDevices:undefined});
+  await expect(voice.connect()).rejects.toThrow('브라우저의 마이크 기능');
+  expect(fetch).not.toHaveBeenCalled();
+ });
+ it('SDK 오류의 코드만 표시하고 원문·키 등의 오류 상세는 노출하지 않음',async()=>{
+  await voice.connect();m.handlers.get('error')?.({error:{error:{code:'invalid_session',message:'secret-detail'}}});
+  expect(errors).toHaveBeenCalledWith(expect.stringContaining('invalid_session'));
+  expect(errors.mock.calls[0][0]).not.toContain('secret-detail');
+  expect(m.close).toHaveBeenCalled();expect(stop).toHaveBeenCalled();
+ });
+ it.each([
+  {error:{code:'response_cancel_not_active'}},
+  {error:{error:{code:'response_cancel_not_active'}}},
+ ])('응답 완료 뒤 취소 오류에서도 마이크·연결을 유지하고 다음 질문 재생',async event=>{
+  await voice.connect();voice.speak('첫 질문');
+  emit({type:'response.created',response:{id:'r1',metadata:{generation:'1'}}});
+  emit({type:'output_audio_buffer.started',response_id:'r1'});
+  emit({type:'output_audio_buffer.stopped',response_id:'r1'});
+  voice.pause(true);m.handlers.get('error')?.(event);
+  expect(errors).not.toHaveBeenCalled();expect(m.close).not.toHaveBeenCalled();expect(stop).not.toHaveBeenCalled();
+  voice.pause(false);voice.speak('다음 질문');
+  emit({type:'response.created',response:{id:'r2',metadata:{generation:'2'}}});
+  emit({type:'output_audio_buffer.started',response_id:'r2'});
+  emit({type:'output_audio_buffer.stopped',response_id:'r2'});
+  expect(m.send).toHaveBeenCalledTimes(2);expect(delivery).toHaveBeenLastCalledWith('completed');
+ });
+ it('페이지 종료 후 늦게 도착한 오류를 표시하지 않고 종료를 반복하지 않음',async()=>{
+  await voice.connect();voice.close();
+  m.handlers.get('error')?.({error:{error:{code:'invalid_session'}}});voice.close();
+  expect(errors).not.toHaveBeenCalled();expect(m.close).toHaveBeenCalledTimes(1);expect(stop).toHaveBeenCalledTimes(1);
+ });
 });

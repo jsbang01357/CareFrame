@@ -7,11 +7,13 @@ import { draftIsCurrent, reviewedEmrText, type ClinicianDraft } from '@/lib/repo
 import { statusLabels } from '@/data/protocol';
 import { ReportView } from './ReportView';
 
-export function ClinicianReview({ state, fixture, onCorrect }: {
+export function ClinicianReview({ state, fixture, onCorrect, reviewDraft, onDraftChange }: {
   state: InterviewState; fixture: boolean; onCorrect: (id: string) => void;
+  reviewDraft: ClinicianDraft | null; onDraftChange: (draft: ClinicianDraft) => void;
 }) {
   const report = buildReport(state, fixture);
-  const [draft, setDraft] = useState<ClinicianDraft>(() => ({ sessionId: state.session_id, sourceRevision: state.revision, text: report.emrText, reviewed: false }));
+  const draft = reviewDraft || { sessionId: state.session_id, sourceRevision: state.revision, text: report.emrText, reviewed: false };
+  const setDraft = onDraftChange;
   const [selected, setSelected] = useState<ClinicalFact | null>(null);
   const [copyStatus, setCopyStatus] = useState('');
   const current = draftIsCurrent(draft, state);

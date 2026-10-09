@@ -1,12 +1,12 @@
 'use client';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
-import { fields, statusLabels, questions, questionField, SESSION_DURATION_MS, ABDOMINAL_CPX_ID, yesNoFields } from '@/data/protocol';
+import { fields, statusLabels, questions, questionField, SESSION_DURATION_MS, ABDOMINAL_CPX_ID, yesNoFields, detailFields, URGENT_TEXT } from '@/data/protocol';
 import { fixtures, fixtureExtraction } from '@/data/fixtures';
 import { cpxCatalogs } from '@/data/cpx-catalog';
 import { initialState, firstAction, transition } from '@/lib/interview/engine';
-import { responseSchema, type InterviewState, type NextAction, type Sex, type Turn, type TurnRequest } from '@/lib/contracts';
-import type { CpxCatalog } from '@/data/cpx-catalog';
+import { finalSummaryResponseSchema, responseSchema, type InterviewState, type NextAction, type Sex, type Turn, type TurnRequest } from '@/lib/contracts';
+import type { ClinicianDraft } from '@/lib/report/clinician-review';
 import type { VoiceController, VoiceStatus } from '@/lib/voice/controller';
 import { ClinicianReview } from '@/components/ClinicianReview';
 import { CareGuidanceView } from '@/components/CareGuidanceView';
@@ -25,7 +25,6 @@ export default function Home() {
   const [caseId, setCaseId] = useState('T01'); const [step, setStep] = useState(0);
   const [consent, setConsent] = useState([false, false, false]);
   const [ageInput, setAgeInput] = useState(''); const [sexInput, setSexInput] = useState<Sex | ''>('');
-  const [selectedCpxId, setSelectedCpxId] = useState(ABDOMINAL_CPX_ID); const [manualTopic, setManualTopic] = useState(''); const [topicQuery, setTopicQuery] = useState('');
   const [input, setInput] = useState(''); const [busy, setBusy] = useState(false); const [slow, setSlow] = useState(false);
   const [error, setError] = useState(''); const [pendingText, setPendingText] = useState('');
   const [correction, setCorrection] = useState<Turn | null>(null);
@@ -36,13 +35,14 @@ export default function Home() {
   const stateRef = useRef<InterviewState | null>(null); const busyRef = useRef(false); const voiceRef = useRef<VoiceController | null>(null);
   const fixtureRef = useRef(false); const abortRef = useRef<AbortController | null>(null); const failedRef = useRef<TurnRequest | null>(null);
   const sessionEpoch = useRef(0); const lastActive = useRef(0); const started = useRef(0); const nextRef = useRef(next);
+  const terminalUrgentSummaryPending = useRef(false);
   const [showReport, setShowReport] = useState(false);
-  const [copyStatus, setCopyStatus] = useState<'copied' | 'failed' | null>(null);
+  const [reviewDraft, setReviewDraft] = useState<ClinicianDraft | null>(null);
   const closingVoiceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const urgentAudio = useRef<HTMLAudioElement | null>(null);
   const scenario = fixtures.find(c => c.id === caseId)!;
-  const selectedCpx = cpxCatalogs.find(topic => topic.id === selectedCpxId);
-  const selectedTopic = selectedCpx?.title || manualTopic.trim();
+  const selectedCpx = cpxCatalogs.find(topic => topic.id === ABDOMINAL_CPX_ID);
+  const selectedTopic = selectedCpx?.title || '복통';
   const personaId = state?.persona_id ?? selectedPersona;
   const personaName = personaNames[personaId];
   const ageNumber = ageInput === '' ? Number.NaN : Number(ageInput);
@@ -69,14 +69,15 @@ export default function Home() {
     const previousTurnCount = stateRef.current?.turns.length ?? 0;
     const receivedNewTurn = s.turns.length > previousTurnCount;
     const wasUrgent = stateRef.current?.safety.latched;
-    setCopyStatus(null);
-    stateRef.current = s; setState(s); nextRef.current = a; setNext(a);
+    const carriedSummary = a.kind === 'finish' ? nextRef.current.summary : null;
+    const nextAction = carriedSummary ? { ...a, summary: carriedSummary } : a;
+    stateRef.current = s; setState(s); nextRef.current = nextAction; setNext(nextAction);
     if (s.safety.latched || ['review', 'finished', 'out_of_scope'].includes(s.phase)) clearPersonaMoment();
     else if (receivedNewTurn) {
       const latestTurn = s.turns.at(-1);
       if (latestTurn?.role === 'user') showPersonaMoment(getPersonaAnswerMoment(latestTurn.text));
     }
-    if (a.kind === 'urgent_help') {
+    if (nextAction.kind === 'urgent_help') {
       voiceRef.current?.close(); voiceRef.current = null; setShowReport(false);
       if (!fixtureRef.current && !wasUrgent) {
         const audio = new Audio('/audio/urgent-help.mp3');
@@ -84,7 +85,7 @@ export default function Home() {
         void audio.play().catch(() => setStatusNote('고정 안내 음성은 준비되지 않았거나 재생할 수 없습니다. 화면 안내를 읽어 주세요.'));
       }
     }
-    if (['review','out_of_scope','finish'].includes(a.kind)) setShowReport(false);
+    if (['review','out_of_scope','finish'].includes(nextAction.kind)) setShowReport(false);
   };
   useEffect(() => {
     void fetch('/api/health').then(r => r.json()).then(setHealth).catch(() => setError('앱 설정 상태를 확인하지 못했습니다.'));
@@ -115,6 +116,13 @@ export default function Home() {
   }, [state?.session_id]);
   async function submit(event: TurnRequest['event'], turn: Turn | null, target: string | null = null, retry?: TurnRequest): Promise<void> {
     if (busyRef.current || !stateRef.current) return;
+    if (event === 'answer' || event === 'correct') {
+      setStatusNote('');
+      if (nextRef.current.summary) {
+        const cleared = { ...nextRef.current, summary: null };
+        nextRef.current = cleared; setNext(cleared);
+      }
+    }
     busyRef.current = true; setBusy(true); setSlow(false); setError(''); lastActive.current = Date.now();
     setPendingText(turn?.text || '');
     const epoch = sessionEpoch.current;
@@ -128,12 +136,44 @@ export default function Home() {
       const result = responseSchema.parse(json);
       if (epoch !== sessionEpoch.current) return;
       if (result.request_id !== request.request_id || result.base_revision !== stateRef.current?.revision || result.state.session_id !== stateRef.current.session_id) throw new Error('오래된 응답을 적용하지 않았습니다.');
+      const urgentJustTriggered = !stateRef.current.safety.latched && result.state.safety.latched;
       apply(result.state, result.next_action); failedRef.current = null; setPendingText(''); setInput(''); setCorrection(null);
+      const terminalAction = ['review', 'out_of_scope'].includes(result.next_action.kind);
+      if (urgentJustTriggered && terminalAction) {
+        terminalUrgentSummaryPending.current = true;
+        voiceRef.current?.finish(`${URGENT_TEXT} 지금까지의 답변을 정리하고 있어요.`);
+      }
+      let finalSummary: string | null = null;
+      if (['review', 'out_of_scope'].includes(result.next_action.kind) && !fixtureRef.current) {
+        setStatusNote('지금까지의 답변을 요약하고 있어요.');
+        const summaryController = new AbortController(); abortRef.current = summaryController;
+        const summaryTimeout = setTimeout(() => summaryController.abort(), 13000);
+        try {
+          const summaryResponse = await fetch('/api/final-summary', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ state: result.state }), signal: summaryController.signal,
+          });
+          if (!summaryResponse.ok) throw new Error('summary_unavailable');
+          const parsedSummary = finalSummaryResponseSchema.parse(await summaryResponse.json());
+          finalSummary = parsedSummary.summary.trim() || null;
+        } catch { finalSummary = null; }
+        finally { clearTimeout(summaryTimeout); }
+        if (epoch !== sessionEpoch.current) return;
+        if (finalSummary) {
+          const withSummary = { ...result.next_action, summary: finalSummary };
+          nextRef.current = withSummary; setNext(withSummary); setStatusNote('');
+        } else setStatusNote('AI 요약을 만들지 못해 정해진 안내를 우선 보여드려요.');
+      }
       if (result.next_action.speak) {
         if (['review', 'finish', 'out_of_scope'].includes(result.next_action.kind)) {
-          const closingVoice = voiceRef.current; closingVoice?.finish(result.next_action.approved_text);
+          const closingText = finalSummary ? `${finalSummary} ${result.next_action.approved_text}` : result.next_action.approved_text;
+          terminalUrgentSummaryPending.current = false;
+          const closingVoice = voiceRef.current; closingVoice?.finish(closingText);
           if (closingVoice) closingVoiceTimer.current = setTimeout(() => { closingVoice.close(); if (voiceRef.current === closingVoice) voiceRef.current = null; }, 45000);
-        } else { voiceRef.current?.pause(false); setVoicePaused(false); voiceRef.current?.speak(result.next_action.approved_text); }
+        } else {
+          const urgentNotice = urgentJustTriggered ? `${URGENT_TEXT} 남은 문진 질문도 이어서 여쭤볼게요. ` : '';
+          voiceRef.current?.pause(false); setVoicePaused(false); voiceRef.current?.speak(`${urgentNotice}${result.next_action.approved_text}`);
+        }
       }
     } catch (e) {
       if (epoch !== sessionEpoch.current) return;
@@ -147,9 +187,10 @@ export default function Home() {
   }
   async function start(withVoice: boolean, development = false) {
     if (!ageValid || sexInput === '' || selectedTopic.length < 2) return;
+    terminalUrgentSummaryPending.current = false;
     if (closingVoiceTimer.current) clearTimeout(closingVoiceTimer.current);
     sessionEpoch.current++; voiceRef.current?.close(); failedRef.current = null; setError(''); setPendingText('');
-    fixtureRef.current = development; setFixture(development); setStep(0); setShowReport(false); setStatusNote('');
+    fixtureRef.current = development; setFixture(development); setReviewDraft(null); setStep(0); setShowReport(false); setStatusNote('');
     const sessionPersona = selectedPersona;
     const s = initialState(uuid(), { age: ageNumber, sex: sexInput }, selectedCpx?.id || null, selectedCpx ? null : selectedTopic, sessionPersona); const greeting = firstAction(selectedCpx?.title, sessionPersona); apply(s, greeting); started.current = lastActive.current = Date.now();
     if (!withVoice) return;
@@ -160,7 +201,7 @@ export default function Home() {
         delivery: status => {
           const s = stateRef.current; if (!s) return;
           const d = s.deliveries.at(-1); if (d) d.status = status;
-          if (status === 'completed' && ['review', 'finished', 'out_of_scope'].includes(s.phase)) {
+          if (status === 'completed' && ['review', 'finished', 'out_of_scope'].includes(s.phase) && !terminalUrgentSummaryPending.current && !voiceRef.current?.hasQueuedSpeech) {
             if (closingVoiceTimer.current) clearTimeout(closingVoiceTimer.current);
             // 현재 출력 이벤트 처리가 끝난 뒤 연결을 닫는다.
             queueMicrotask(() => { voice.close(); if (voiceRef.current === voice) voiceRef.current = null; });
@@ -168,7 +209,7 @@ export default function Home() {
         },
         transcript: async item => {
           const s = stateRef.current;
-          if (!s || ['review','finished','out_of_scope','urgent_stop'].includes(s.phase)) return false;
+          if (!s || ['review','finished','out_of_scope'].includes(s.phase)) return false;
           if (!item.text.trim()) return true;
           // 대기 중 질문이 바뀌었으면 간접 부정 답변의 질문 연결을 비워 둔다.
           const q = item.questionId === s.last_question_id ? item.questionId : null;
@@ -214,16 +255,11 @@ export default function Home() {
     try { const r = transition({ request_id: uuid(), event: part.event || 'answer', expected_revision: s.revision, state: s, utterance: t, target_turn_id: target }, fixtureExtraction(part, t)); apply(r.state, r.next_action); setStep(step + 1); }
     catch (e) { setError(e instanceof Error ? e.message : '개발용 증례 오류'); }
   }
-  function reset() { if (closingVoiceTimer.current) clearTimeout(closingVoiceTimer.current); clearPersonaMoment(); sessionEpoch.current++; abortRef.current?.abort(); voiceRef.current?.close(); urgentAudio.current?.pause(); urgentAudio.current = null; voiceRef.current = null; stateRef.current = null; setState(null); setBusy(false); busyRef.current = false; setError(''); setInput(''); setCorrection(null); setPendingText(''); setVoicePaused(false); failedRef.current = null; setAgeInput(''); setSexInput(''); setSelectedCpxId(ABDOMINAL_CPX_ID); setManualTopic(''); setTopicQuery(''); }
+  function reset() { if (closingVoiceTimer.current) clearTimeout(closingVoiceTimer.current); clearPersonaMoment(); sessionEpoch.current++; terminalUrgentSummaryPending.current = false; abortRef.current?.abort(); voiceRef.current?.close(); urgentAudio.current?.pause(); urgentAudio.current = null; voiceRef.current = null; stateRef.current = null; setState(null); setReviewDraft(null); setBusy(false); busyRef.current = false; setError(''); setInput(''); setCorrection(null); setPendingText(''); setVoicePaused(false); failedRef.current = null; setAgeInput(''); setSexInput(''); }
   function evidence(id: string) { setShowReport(false); setTimeout(() => document.getElementById(`turn-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 20); }
   async function confirm() {
     if (fixture) { const s = stateRef.current!; apply(...asTuple(transition({ request_id: uuid(), event: 'confirm', expected_revision: s.revision, state: s, utterance: null, target_turn_id: null }))); }
     else await submit('confirm', null);
-  }
-  async function copyEmr() {
-    if (!stateRef.current) return;
-    try { await navigator.clipboard.writeText(buildReport(stateRef.current, fixtureRef.current).emrText); setCopyStatus('copied'); }
-    catch { setCopyStatus('failed'); }
   }
   const ended = state && ['review','finished','urgent_stop','out_of_scope'].includes(state.phase);
   const personaExpression = getPersonaExpression(state, next, busy, voiceStatus, personaMoment);
@@ -254,17 +290,17 @@ export default function Home() {
         <div className="session-notice">{fixture ? '개발용 고정 사실 후보 · 음성/추출 API 미사용' : 'AI 사전문진 · 자동 전사 수정 가능'} <span>복통 사전문진 · 임상 프로토콜 검토 미완료</span></div>
         {error && <div role="alert" className="error-box"><strong>처리를 완료하지 못했어요</strong><p>{error}</p>{pendingText && <blockquote>처리 대기 원문: {pendingText}</blockquote>}{failedRef.current && !busy && <div className="button-row"><button className="secondary" onClick={() => void submit(failedRef.current!.event, failedRef.current!.utterance, failedRef.current!.target_turn_id, failedRef.current!)}>같은 요청 재시도</button><button className="text-button" onClick={() => { const f=failedRef.current!; setInput(f.utterance?.text || ''); setCorrection(f.event === 'correct' ? state.turns.find(t=>t.id===f.target_turn_id) || null : null); }}>글로 확인·수정</button></div>}</div>}
         {statusNote && <p role="status" className="status-note">{statusNote}</p>}
-        {state.safety.latched && <section className="urgent-card" role="alert"><span className="eyebrow">문진 중단 · 긴급 도움 안내</span><h2>문진을 기다리지 마세요.</h2><p>{next.approved_text}</p><a className="urgent-call" href="tel:119">119에 연락하기 ↗</a><small>자동 신고 기능은 없습니다. 번호를 직접 확인하고 도움을 요청하세요.</small><button className="secondary" onClick={() => setShowReport(true)}>지금까지의 자료 보기</button></section>}
-        {showReport ? <><div className="report-toolbar"><div className="report-back"><PersonaAvatar personaId={state.persona_id} variant="report" expression={personaExpression}/><button className="text-button" onClick={() => setShowReport(false)}>← 환자 안내·문진으로 돌아가기</button></div></div><ClinicianReview key={state.session_id} state={state} fixture={fixture} onCorrect={id => { const turn = state.turns.find(t => t.id === id); if (!turn || fixture || busy) return; setCorrection(turn); setInput(turn.text); setShowReport(false); voiceRef.current?.pause(true); }}/></> : <div className="interview-grid">
+        {state.safety.latched && <section className="urgent-card" role="alert"><span className="eyebrow">긴급 도움 안내 · 응답은 계속 기록돼요</span><h2>도움 요청은 문진보다 먼저예요.</h2><p>{URGENT_TEXT}</p><a className="urgent-call" href="tel:119">119에 연락하기 ↗</a><small>문진을 계속해도 도움 요청을 미루지 마세요. 자동 신고 기능은 없습니다.</small><button className="secondary" onClick={() => setShowReport(true)}>지금까지의 자료 보기</button></section>}
+        {showReport ? <><div className="report-toolbar"><div className="report-back"><PersonaAvatar personaId={state.persona_id} variant="report" expression={personaExpression}/><button className="text-button" onClick={() => setShowReport(false)}>← 환자 안내·문진으로 돌아가기</button></div></div><ClinicianReview key={state.session_id} state={state} fixture={fixture} reviewDraft={reviewDraft} onDraftChange={setReviewDraft} onCorrect={id => { const turn = state.turns.find(t => t.id === id); if (!turn || fixture || busy) return; setCorrection(turn); setInput(turn.text); setShowReport(false); voiceRef.current?.pause(true); }}/></> : <div className="interview-grid">
           <section className="conversation-panel"><div className="persona-row"><PersonaAvatar personaId={state.persona_id} variant="session" expression={personaExpression}/><div><strong>{personaName}</strong><span>AI 건강 길잡이</span></div><span className={`voice-status ${voiceStatus === 'listening' ? 'active' : ''}`} role="status">{fixture ? '고정 증례' : voiceLabels[voiceStatus]}</span></div>
-            {!state.safety.latched && <div className="question-box"><span className="eyebrow">{ended ? '문진이 끝났어요' : '지금 확인하는 내용'}</span><h2>{ended ? "이제 다음 행동을 확인해 주세요." : next.approved_text}</h2></div>}
-            {ended && <CareGuidanceView guidance={buildReport(state, fixture).careGuidance}/>}
+            <div className="question-box"><span className="eyebrow">{ended ? next.summary ? `${personaName}가 답변을 정리했어요` : '문진이 끝났어요' : '지금 확인하는 내용'}</span><h2>{ended ? next.summary || '이제 다음 행동을 확인해 주세요.' : next.approved_text}</h2>{ended && next.summary && <p className="summary-disclosure">AI 요약 · 답변 원문과 함께 확인해 주세요.</p>}</div>
+            {ended && <><CareGuidanceView guidance={buildReport(state, fixture).careGuidance}/>{state.confirmed_revision !== state.revision && <button className="secondary" disabled={busy} onClick={() => void confirm()}>환자 응답 내용 확인</button>}</>}
             {!fixture && !ended && !correction && <div className="quick-answer-panel">
-              {yesNoFields.includes(questionField(next.question_id)!) || next.question_id === 'q_scope' ? <><p>말하거나 버튼을 눌러 답해 주세요</p><div className="quick-answer-buttons"><button className="primary" disabled={busy || ending} onClick={() => sendQuick('네')}>예</button><button className="secondary" disabled={busy || ending} onClick={() => sendQuick('아니요')}>아니오</button><button className="text-button" disabled={busy || ending} onClick={() => sendQuick('잘 모르겠어요')}>잘 모르겠어요</button></div></> : next.question_id === 'q_pain_severity' ? <><p>통증 강도를 선택해 주세요</p><div className="nrs-buttons">{Array.from({length: 11}, (_, n) => <button className="secondary" key={n} disabled={busy || ending} onClick={() => sendQuick(`${n}/10`)} aria-label={`통증 ${n}점`}>{n}</button>)}</div><button className="text-button" disabled={busy || ending} onClick={() => sendQuick('잘 모르겠어요')}>잘 모르겠어요</button></> : null}
+              {(yesNoFields.includes(questionField(next.question_id)!) && !(next.kind === 'clarify' && detailFields.includes(questionField(next.question_id)!))) || next.question_id === 'q_scope' ? <><p>말하거나 버튼을 눌러 답해 주세요</p><div className="quick-answer-buttons"><button className="primary" disabled={busy || ending} onClick={() => sendQuick('네')}>예</button><button className="secondary" disabled={busy || ending} onClick={() => sendQuick('아니요')}>아니오</button><button className="text-button" disabled={busy || ending} onClick={() => sendQuick('잘 모르겠어요')}>잘 모르겠어요</button></div></> : next.question_id === 'q_pain_severity' ? <><p>통증 강도를 선택해 주세요</p><div className="nrs-buttons">{Array.from({length: 11}, (_, n) => <button className="secondary" key={n} disabled={busy || ending} onClick={() => sendQuick(`${n}/10`)} aria-label={`통증 ${n}점`}>{n}</button>)}</div><button className="text-button" disabled={busy || ending} onClick={() => sendQuick('잘 모르겠어요')}>잘 모르겠어요</button></> : null}
             </div>}
             {busy && <p role="status" className="processing"><span className="spinner"/>{slow ? '말씀하신 내용을 확인하고 있어요. 취소할 수 있어요.' : '말씀하신 내용을 확인하는 중…'}<button className="text-button" onClick={() => abortRef.current?.abort()}>취소</button></p>}
-            {fixture ? <div className="fixture-input"><strong>{caseId} · {scenario.label}</strong><p>이 입력의 사실 후보는 미리 작성되어 있습니다.</p>{scenario.steps[step] && !state.safety.latched ? <><blockquote>{scenario.steps[step].text}</blockquote><button className="primary" onClick={fixtureStep}>준비된 발언 반영 ({step+1}/{scenario.steps.length})</button></> : <p>준비된 발언을 모두 반영했어요. 지금까지의 자료를 확인하세요.</p>}</div> : <div className="text-input"><label htmlFor="answer">{correction ? '전사 정정 · 전체 대체 문장' : '글로 답하기'}</label>{correction && <p>이전 발언: “{correction.text}” <button className="text-button" onClick={() => { setCorrection(null); setInput(''); }}>정정 취소</button></p>}<textarea id="answer" value={input} maxLength={2000} disabled={busy || (Boolean(ended) && !correction)} onChange={e => setInput(e.target.value)} placeholder="떠오르는 그대로 말씀해 주세요."/><button className="primary" disabled={busy || !input.trim() || (Boolean(ended) && !correction)} onClick={sendText}>{correction ? '정정 반영' : '답변 보내기'} →</button></div>}
-            <div className="conversation-actions">{!fixture && voiceRef.current && <button className="secondary" disabled={busy} onClick={() => { const pause = !voicePaused; voiceRef.current?.pause(pause); setVoicePaused(pause); lastActive.current = Date.now(); }}>{voicePaused ? '마이크 다시 켜기' : '마이크 일시정지'}</button>}{ended ? <button className="secondary" onClick={() => setShowReport(true)}>의료진 검토 화면 보기</button> : <button className="secondary" disabled={busy || ending} onClick={() => void end()}>{ending ? '마지막 발언 확인 중…' : '지금까지 정리하고 종료'}</button>}</div>
+            {fixture ? <div className="fixture-input"><strong>{caseId} · {scenario.label}</strong><p>이 입력의 사실 후보는 미리 작성되어 있습니다.</p>{scenario.steps[step] ? <><blockquote>{scenario.steps[step].text}</blockquote><button className="primary" onClick={fixtureStep}>준비된 발언 반영 ({step+1}/{scenario.steps.length})</button></> : <p>준비된 발언을 모두 반영했어요. 지금까지의 자료를 확인하세요.</p>}</div> : <div className="text-input"><label htmlFor="answer">{correction ? '전사 정정 · 전체 대체 문장' : '글로 답하기'}</label>{correction && <p>이전 발언: “{correction.text}” <button className="text-button" onClick={() => { setCorrection(null); setInput(''); }}>정정 취소</button></p>}<textarea id="answer" value={input} maxLength={2000} disabled={busy || (Boolean(ended) && !correction)} onChange={e => setInput(e.target.value)} placeholder="떠오르는 그대로 말씀해 주세요."/><button className="primary" disabled={busy || !input.trim() || (Boolean(ended) && !correction)} onClick={sendText}>{correction ? '정정 반영' : '답변 보내기'} →</button></div>}
+            <div className="conversation-actions">{!fixture && voiceRef.current && <button className="secondary" disabled={busy} onClick={() => { const pause = !voicePaused; voiceRef.current?.pause(pause); setVoicePaused(pause); lastActive.current = Date.now(); }}>{voicePaused ? '마이크 다시 켜기' : '마이크 일시정지'}</button>}{ended ? <button className="secondary" disabled={busy || ending} onClick={() => setShowReport(true)}>의료진 검토 화면 보기</button> : <button className="secondary" disabled={busy || ending} onClick={() => void end()}>{ending ? '마지막 발언 확인 중…' : '지금까지 정리하고 종료'}</button>}</div>
             <p className="storage-note">새로고침하면 기록이 사라져요. 필요한 자료는 인쇄해 주세요.</p>
           </section>
           <aside className="history-panel"><div className="history-title"><h2>지금까지 들은 내용</h2><span>버전 {state.revision}</span></div><div className="fact-list">{state.facts.filter(f => f.status !== 'not_assessed').map(f => <div className="fact-item" key={f.field_id}><span>{fields[f.field_id]}</span><strong>{f.value || statusLabels[f.status]}</strong>{f.evidence.map((e,i) => <button className="evidence-link" key={i} onClick={() => evidence(e.turn_id)}>원문 확인 ↗</button>)}</div>)}{state.facts.every(f=>f.status==='not_assessed') && <p className="muted">말씀하신 내용이 확인되면 여기에 채워져요.</p>}</div><details className="unassessed"><summary>아직 확인하지 못한 항목 ({state.facts.filter(f=>f.status==='not_assessed').length})</summary>{state.facts.filter(f=>f.status==='not_assessed').map(f=><p key={f.field_id}>{fields[f.field_id]} · 미확인</p>)}</details><div className="transcript-title"><h3>대화 원문</h3><small>자동 전사는 사실 확인이 필요해요</small></div>{state.turns.map(t => <div className={`transcript ${state.turns.some(x=>x.replaces_turn_id===t.id) ? 'superseded' : ''}`} id={`turn-${t.id}`} key={t.id}><small>{t.origin==='voice_transcript' ? '자동 전사 · 수정 가능' : t.replaces_turn_id ? '사용자 정정' : '텍스트 진술'} · {t.id.slice(0,8)}</small>{t.prompted_question_id && <p className="prompt-context">질문: {questions[questionField(t.prompted_question_id)!] || '지원 범위 확인'}</p>}<p>{t.text}</p>{!fixture && !state.turns.some(x=>x.replaces_turn_id===t.id) && <button disabled={busy} className="text-button" onClick={() => { setCorrection(t); setInput(t.text); setShowReport(false); voiceRef.current?.pause(true); }}>이 발언 정정</button>}</div>)}</aside>
